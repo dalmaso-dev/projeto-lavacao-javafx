@@ -144,9 +144,17 @@ public class OrdemServicoDAO {
     }
 
     public List<OrdemServico> listar() {
-        String sql = "SELECT * FROM ordem_servico";
-        String sql2 = "SELECT * FROM item_os WHERE numero_os=?";
-        String sql3 = "SELECT * FROM veiculo WHERE id=?";
+        String sql = """
+            SELECT *
+            FROM ordem_servico os INNER JOIN veiculo v ON os.id_veiculo=v.id 
+            INNER JOIN modelo mdl ON v.id_modelo = mdl.id
+            INNER JOIN marca mrc ON mdl.marca_id = mrc.id
+            INNER JOIN motor mtr ON mdl.id = mtr.id_modelo
+            INNER JOIN cliente c ON v.id_cliente = c.id
+            INNER JOIN pontuacao p ON c.id = p.id_cliente
+            LEFT JOIN pessoa_fisica pf ON c.id = pf.id_cliente
+            LEFT JOIN pessoa_juridica pj ON c.id = pj.id_cliente
+            """;
 
         List<OrdemServico> ordemServicos = new ArrayList<>();
 
@@ -197,7 +205,7 @@ public class OrdemServicoDAO {
         return ordemServico;
     }
 
-    private OrdemServico populateVO(ResultSet rs) throws SQLException {
+    private OrdemServico osPopulateVO(ResultSet rs) throws SQLException {
         OrdemServico ordemServico = new OrdemServico();
         Marca marca = new Marca();
         ordemServico.setMarca(marca);
@@ -211,6 +219,10 @@ public class OrdemServicoDAO {
         ordemServico.getMotor().setTipoCombustivel(Enum.valueOf(ETipoCombustivel.class, rs.getString("combustivel_motor")));
 
         return ordemServico;
+    }
+
+    private OrdemServico itemOsPopulateVO(ResultSet resultado) throws SQLException {
+
     }
 
     private void inserirItemOS(OrdemServico ordemServico) {
