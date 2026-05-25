@@ -18,6 +18,8 @@ public class OrdemServico {
 
     private List<ItemOS> listaItemOS = new ArrayList<>();
 
+    public OrdemServico() {}
+
     public OrdemServico(long numero, LocalDate agenda, Veiculo veiculo) {
         this.numero = numero;
         this.agenda = agenda;

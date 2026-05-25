@@ -120,8 +120,9 @@ CREATE TABLE ordem_servico(
 
 CREATE TABLE item_os (
     numero_os bigint not null,
-    id_servico int not null,
+    observacoes varchar(100),
     valor_servico double not null,
+    id_servico int not null,
     constraint pk_item_os
         primary key(numero_os),
     CONSTRAINT fk_item_os_ordem_servico
@@ -176,8 +177,7 @@ insert into pessoa_juridica(id_cliente, cnpj, inscricao_estadual) values
      '110.042.490.114');
 
 insert into pontuacao(id_cliente, quantidade) values
-    ((SELECT max(id) from cliente),
-     0);
+    ((SELECT max(id) from cliente),0);
 
 insert into veiculo(placa, observacoes, id_cliente, id_cor, id_modelo) values
 ('GRE3R45', null, 1, 1, 1);

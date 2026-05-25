@@ -6,6 +6,8 @@ public class ItemOS {
 
     private Servico servico;
 
+    public ItemOS() {}
+
     public ItemOS(String observacoes, Servico servico, double valorServico) {
         this.valorServico = valorServico;
         this.observacoes = observacoes;
@@ -38,5 +40,17 @@ public class ItemOS {
 
     public Servico getServico() {
         return servico;
+    }
+
+    public void setValorServico(double valorServico) {
+        this.valorServico = valorServico;
+    }
+
+    public void setObservacoes(String observacoes) {
+        this.observacoes = observacoes;
+    }
+
+    public void setServico(Servico servico) {
+        this.servico = servico;
     }
 }

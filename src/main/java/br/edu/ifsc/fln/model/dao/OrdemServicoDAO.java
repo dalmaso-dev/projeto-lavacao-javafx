@@ -6,6 +6,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
@@ -113,6 +114,7 @@ public class OrdemServicoDAO {
     public boolean remover(OrdemServico ordemServico) {
         String sql1 = "DELETE FROM ordem_servico WHERE numero=?";
         String sql2 = "DELETE FROM item_os WHERE numero_os=?";
+
         try {
             connection.setAutoCommit(false);
 
@@ -126,6 +128,7 @@ public class OrdemServicoDAO {
 
             connection.commit();
             return true;
+
         } catch (SQLException ex) {
             try {
                 connection.rollback();
@@ -145,8 +148,25 @@ public class OrdemServicoDAO {
 
     public List<OrdemServico> listar() {
         String sql = """
-            SELECT *
-            FROM ordem_servico os INNER JOIN veiculo v ON os.id_veiculo=v.id 
+            SELECT os.numero AS numero_os,
+            os.agenda as agenda_os,
+            os.desconto as desconto_os,
+            os.status as status_os,
+            v.placa as placa_veiculo,
+            v.observacoes as  observacoes_veiculo,
+            cor.nome as cor_nome,
+            mdl.descricao as descricao_modelo,
+            mdl.categoria as categoria_modelo,
+            mrc.nome as nome_marca,
+            mtr.tipo_combustivel as combustivel_motor,
+            c.id as id_cliente,
+            c.nome as nome_cliente,
+            c.celular as celular_cliente,
+            p.quantidade as quantidade_pontuacao,
+            pf.cpf as cpf_cliente,
+            pj.cnpj as  cnpj_cliente
+            FROM ordem_servico os INNER JOIN veiculo v ON os.id_veiculo=v.id
+            INNER JOIN cor ON v.id_cor = cor.id
             INNER JOIN modelo mdl ON v.id_modelo = mdl.id
             INNER JOIN marca mrc ON mdl.marca_id = mrc.id
             INNER JOIN motor mtr ON mdl.id = mtr.id_modelo
@@ -172,29 +192,45 @@ public class OrdemServicoDAO {
     }
 
     public OrdemServico buscar(OrdemServico ordemServico) {
-        OrdemServico retorno = buscar(ordemServico.getId());
+        OrdemServico retorno = buscar(ordemServico.getNumero());
         return retorno;
     }
 
-    public OrdemServico buscar(int id) {
+    public OrdemServico buscar(long numero) {
         String sql = """
-        SELECT
-        mrc.id AS id_marca,
-        mrc.nome AS nome_marca,
-        mdl.id AS id_ordemServico,
-        mdl.descricao AS descricao_ordemServico,
-        mdl.categoria AS categoria_ordemServico,
-        mot.potencia AS potencia_motor,
-        mot.tipo_combustivel AS combustivel_motor
-        FROM ordemServico mdl INNER JOIN marca mrc ON mdl.marca_id = mrc.id
-            INNER JOIN motor mot on mdl.id = mot.id_ordemServico WHERE mdl.id = ?
-        """;
+            SELECT os.numero AS numero_os,
+            os.agenda as agenda_os,
+            os.desconto as desconto_os,
+            os.status as status_os,
+            v.placa as placa_veiculo,
+            v.observacoes as  observacoes_veiculo,
+            cor.nome as cor_nome,
+            mdl.descricao as descricao_modelo,
+            mdl.categoria as categoria_modelo,
+            mrc.nome as nome_marca,
+            mtr.tipo_combustivel as combustivel_motor,
+            c.id as id_cliente,
+            c.nome as nome_cliente,
+            c.celular as celular_cliente,
+            p.quantidade as quantidade_pontuacao,
+            pf.cpf as cpf_cliente,
+            pj.cnpj as  cnpj_cliente
+            FROM ordem_servico os INNER JOIN veiculo v ON os.id_veiculo=v.id
+            INNER JOIN cor ON v.id_cor = cor.id
+            INNER JOIN modelo mdl ON v.id_modelo = mdl.id
+            INNER JOIN marca mrc ON mdl.marca_id = mrc.id
+            INNER JOIN motor mtr ON mdl.id = mtr.id_modelo
+            INNER JOIN cliente c ON v.id_cliente = c.id
+            INNER JOIN pontuacao p ON c.id = p.id_cliente
+            LEFT JOIN pessoa_fisica pf ON c.id = pf.id_cliente
+            LEFT JOIN pessoa_juridica pj ON c.id = pj.id_cliente WHERE os.numero=?
+            """;
 
         OrdemServico ordemServico = new OrdemServico();
 
         try {
             PreparedStatement stmt = connection.prepareStatement(sql);
-            stmt.setInt(1, id);
+            stmt.setLong(1, numero);
             ResultSet resultado = stmt.executeQuery();
             if (resultado.next()) {
                 ordemServico = populateVO(resultado);
@@ -205,24 +241,89 @@ public class OrdemServicoDAO {
         return ordemServico;
     }
 
-    private OrdemServico osPopulateVO(ResultSet rs) throws SQLException {
+    private OrdemServico populateVO(ResultSet rs) throws SQLException {
         OrdemServico ordemServico = new OrdemServico();
+        Veiculo veiculo = new Veiculo();
+        Cor cor = new Cor();
+        Modelo modelo = new Modelo();
         Marca marca = new Marca();
-        ordemServico.setMarca(marca);
+        Cliente cliente;
 
-        marca.setId(rs.getInt("id_marca"));
+        ordemServico.setNumero(rs.getInt("numero_os"));
+        ordemServico.setAgenda(rs.getObject("agenda_os", LocalDate.class));
+        ordemServico.setStatus(EStatus.valueOf(rs.getString("status_os")));
+        ordemServico.setDesconto(rs.getDouble("desconto_os"));
+
+        veiculo.setPlaca(rs.getString("placa_veiculo"));
+        veiculo.setObservacoes(rs.getString("observacoes_veiculo"));
+
+        cor.setNome(rs.getString("nome_cor"));
+
+        modelo.setDescricao(rs.getString("descricao_modelo"));
+        modelo.setCategoria(Enum.valueOf(ECategoria.class, rs.getString("categoria_modelo")));
+
+        modelo.getMotor().setTipoCombustivel
+                (Enum.valueOf(ETipoCombustivel.class, rs.getString("combustivel_motor")));
+
         marca.setNome(rs.getString("nome_marca"));
-        ordemServico.setId(rs.getInt("id_ordemServico"));
-        ordemServico.setDescricao(rs.getString("descricao_ordemServico"));
-        ordemServico.setCategoria(Enum.valueOf(ECategoria.class, rs.getString("categoria_ordemServico")));
-        ordemServico.getMotor().setPotencia(rs.getInt("potencia_motor"));
-        ordemServico.getMotor().setTipoCombustivel(Enum.valueOf(ETipoCombustivel.class, rs.getString("combustivel_motor")));
+
+        if (rs.getString("cpf_cliente").isEmpty()) {
+            cliente = new PessoaJuridica();
+            ((PessoaJuridica) cliente).setCnpj(rs.getString("cnpj_cliente"));
+        } else {
+            cliente = new PessoaFisica();
+            ((PessoaFisica) cliente).setCpf(rs.getString("cpf_cliente"));
+        }
+
+        cliente.setId(rs.getInt("id_cliente"));
+        cliente.setNome(rs.getString("nome_cliente"));
+        cliente.setCelular(rs.getString("celular_cliente"));
+
+        cliente.getPontuacao().adicionar(rs.getInt("quantidade_pontuacao"));
+
+        modelo.setMarca(marca);
+        veiculo.setModelo(modelo);
+        veiculo.setCliente(cliente);
+        veiculo.setCor(cor);
+        ordemServico.setVeiculo(veiculo);
 
         return ordemServico;
     }
 
-    private OrdemServico itemOsPopulateVO(ResultSet resultado) throws SQLException {
+    private List<ItemOS> listarItensOS(long numeroOS) throws SQLException {
+        String sql = """
+            SELECT i.valor_servico as valor_item,
+            i.observacoes as  observacoes_item,
+            s.id as id_servico,
+            s.valor as valor_servico,
+            s.categoria as categoria_servico,
+            s.descricao as  descricao_servico
+            FROM item_os i INNER JOIN servico s ON i.id_servico = s.id WHERE i.numero_os=?
+            """;
 
+        PreparedStatement stmt = connection.prepareStatement(sql);
+        stmt.setLong(1, numeroOS);
+        ResultSet resultado = stmt.executeQuery();
+
+        List<ItemOS> itensOS = new ArrayList<>();
+
+        while (resultado.next()) {
+            ItemOS itemOS = new ItemOS();
+            Servico servico = new Servico();
+
+            servico.setId(resultado.getInt("id_servico"));
+            servico.setValor(resultado.getDouble("valor_servico"));
+            servico.setCategoria(Enum.valueOf(ECategoria.class, resultado.getString("categoria_servico")));
+            servico.setDescricao(resultado.getString("descricao_servico"));
+
+            itemOS.setValorServico(resultado.getDouble("valor_item"));
+            itemOS.setObservacoes(resultado.getString("observacoes_item"));
+            itemOS.setServico(servico);
+
+            itensOS.add(itemOS);
+        }
+
+        return itensOS;
     }
 
     private void inserirItemOS(OrdemServico ordemServico) {
@@ -242,5 +343,4 @@ public class OrdemServicoDAO {
             Logger.getLogger(OrdemServicoDAO.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-
 }
