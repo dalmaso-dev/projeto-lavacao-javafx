@@ -91,6 +91,21 @@ public class OrdemServicoDAO {
             //inserindo os itens os
             inserirItemOS(ordemServico);
 
+
+            //inserindo os pontos para cliente
+            if (ordemServico.getStatus() == EStatus.FECHADA) {
+                // atribuindo e calculando a quantidade de pontos do cliente
+                int pontos = ordemServico.getListaItemOS().size() * Servico.getPontos();
+                ordemServico.getVeiculo().getProprietario().getPontuacao().adicionar(pontos);
+
+                String sl3 = "UPDATE pontuacao SET quantidade=? WHERE id_cliente=?";
+
+                stmt = connection.prepareStatement(sl3);
+                stmt.setInt(1, ordemServico.getVeiculo().getProprietario().getPontuacao().saldo());
+                stmt.setInt(2, ordemServico.getVeiculo().getProprietario().getId());
+                stmt.execute();
+            }
+
             connection.commit();
 
             return true;
@@ -185,6 +200,10 @@ public class OrdemServicoDAO {
                 OrdemServico ordemServico = populateVO(resultado);
                 ordemServicos.add(ordemServico);
             }
+
+            for(OrdemServico os : ordemServicos) {
+                listarItensOS(os);
+            }
         } catch (SQLException ex) {
             Logger.getLogger(OrdemServicoDAO.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -232,9 +251,12 @@ public class OrdemServicoDAO {
             PreparedStatement stmt = connection.prepareStatement(sql);
             stmt.setLong(1, numero);
             ResultSet resultado = stmt.executeQuery();
-            if (resultado.next()) {
+            while (resultado.next()) {
                 ordemServico = populateVO(resultado);
             }
+
+            listarItensOS(ordemServico);
+
         } catch (SQLException ex) {
             Logger.getLogger(OrdemServicoDAO.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -290,7 +312,7 @@ public class OrdemServicoDAO {
         return ordemServico;
     }
 
-    private List<ItemOS> listarItensOS(long numeroOS) throws SQLException {
+    private OrdemServico listarItensOS(OrdemServico ordemServico) throws SQLException {
         String sql = """
             SELECT i.valor_servico as valor_item,
             i.observacoes as  observacoes_item,
@@ -302,10 +324,8 @@ public class OrdemServicoDAO {
             """;
 
         PreparedStatement stmt = connection.prepareStatement(sql);
-        stmt.setLong(1, numeroOS);
+        stmt.setLong(1, ordemServico.getNumero());
         ResultSet resultado = stmt.executeQuery();
-
-        List<ItemOS> itensOS = new ArrayList<>();
 
         while (resultado.next()) {
             ItemOS itemOS = new ItemOS();
@@ -320,10 +340,10 @@ public class OrdemServicoDAO {
             itemOS.setObservacoes(resultado.getString("observacoes_item"));
             itemOS.setServico(servico);
 
-            itensOS.add(itemOS);
+            ordemServico.getListaItemOS().add(itemOS);
         }
 
-        return itensOS;
+        return ordemServico;
     }
 
     private void inserirItemOS(OrdemServico ordemServico) {

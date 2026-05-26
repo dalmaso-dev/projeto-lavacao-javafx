@@ -120,13 +120,14 @@ CREATE TABLE ordem_servico(
 
 CREATE TABLE item_os (
     numero_os bigint not null,
+    id_servico int not null,
     observacoes varchar(100),
     valor_servico double not null,
-    id_servico int not null,
     constraint pk_item_os
-        primary key(numero_os),
+        primary key(numero_os, id_servico),
     CONSTRAINT fk_item_os_ordem_servico
-        FOREIGN KEY (numero_os) REFERENCES ordem_servico(numero),
+        FOREIGN KEY (numero_os)
+            REFERENCES ordem_servico(numero),
     CONSTRAINT fk_item_os_servico
         FOREIGN KEY (id_servico) REFERENCES servico(id)
 )engine = InnoDB;
