@@ -141,7 +141,7 @@ VALUES ('Preto');
 INSERT INTO marca(nome)
 VALUES ('Maserati');
 
-insert into servico(descricao, valor) values ('polimento',100);
+insert into servico(descricao, valor, categoria) values ('polimento',100, 'PADRAO');
 
 insert into parametros_de_sistema values ('pontos',20);
 
@@ -185,3 +185,9 @@ insert into veiculo(placa, observacoes, id_cliente, id_cor, id_modelo) values
 
 insert into veiculo(placa, observacoes, id_cliente, id_cor, id_modelo) values
     ('VAS4R56', null, 2, 2, 1);
+
+insert into ordem_servico(numero, total, agenda, desconto, id_veiculo, status) values
+    (null, 100,'2026-08-24', 0, 1, 'ABERTA');
+
+insert into item_os(numero_os, id_servico, observacoes, valor_servico) values
+    ((SELECT max(numero) from ordem_servico), 1, null, 100);
