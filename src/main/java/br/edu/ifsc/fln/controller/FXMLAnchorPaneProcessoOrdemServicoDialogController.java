@@ -103,9 +103,7 @@ public class FXMLAnchorPaneProcessoOrdemServicoDialogController implements Initi
         veiculoDAO.setConnection(connection);
         ordemServicoDAO.setConnection(connection);
         carregarComboBoxClientes();
-        carregarComboBoxVeiculos();
-        carregarChoiceBoxServicos();
-        carregarComboBoxStatus();
+        carregarChoiceBoxStatus();
         setFocusLostHandle();
         tableColumnServico.setCellValueFactory(new PropertyValueFactory<>("servico"));
         tableColumnObservacao.setCellValueFactory(new PropertyValueFactory<>("observacoes"));
@@ -120,14 +118,16 @@ public class FXMLAnchorPaneProcessoOrdemServicoDialogController implements Initi
 
     private void carregarComboBoxServicos() {
         /* carrega apenas os produtos  com estoque cuja SITUACAO está em ATIVO para operações */
-        listaServicos = produtoDAO.listar(ESituacao.ATIVO);
+        String categoria = comboBoxVeiculos.getValue().getModelo().getCategoria().name();
+        listaServicos = servicoDAO.listarPorCategoria(categoria);
         observableListServicos = FXCollections.observableArrayList(listaServicos);
-        comboBoxServico.setItems(observableListServicos);
+        comboBoxServicos.setItems(observableListServicos);
     }
 
 
     public void carregarChoiceBoxSituacao() {
-        choiceBoxSituacao.setItems( FXCollections.observableArrayList(EStatusVenda.values()));
+        String sttus
+        choiceBoxStatus.setItems( FXCollections.observableArrayList(EStatusVenda.values()));
         choiceBoxSituacao.getSelectionModel().select(0);
     }
 
@@ -138,7 +138,6 @@ public class FXMLAnchorPaneProcessoOrdemServicoDialogController implements Initi
                     //System.out.println("teste focus lost");
                     venda.setTaxaDesconto(Double.parseDouble(textFieldDesconto.getText()));
                     textFieldValor.setText(venda.getTotal().toString());
-
                 }
             }
         });

@@ -147,5 +147,30 @@ public class ServicoDAO {
         }
         return retorno;
     }
+
+    public List<Servico> listarPorCategoria(String categoria) {
+        String sql = "SELECT * FROM servico where categoria=? or categoria='PADRAO'";
+        List<Servico> retorno = new ArrayList<>();
+
+        Servico.setPontos(buscarPontos());
+
+        try {
+            PreparedStatement stmt = connection.prepareStatement(sql);
+            stmt.setString(1, categoria);
+            ResultSet resultado = stmt.executeQuery();
+
+            while (resultado.next()) {
+                Servico servico = new Servico();
+                servico.setId(resultado.getInt("id"));
+                servico.setDescricao(resultado.getString("descricao"));
+                servico.setValor(resultado.getDouble("valor"));
+                servico.setCategoria(Enum.valueOf(ECategoria.class,resultado.getString("categoria")));
+                retorno.add(servico);
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(ServicoDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return retorno;
+    }
 }
 
