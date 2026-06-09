@@ -5,8 +5,7 @@
  */
 package br.edu.ifsc.fln.controller;
 
-import br.edu.ifsc.fln.model.dao.ClienteDAO;
-import br.edu.ifsc.fln.model.dao.ProdutoDAO;
+import br.edu.ifsc.fln.model.dao.*;
 import br.edu.ifsc.fln.model.database.Database;
 import br.edu.ifsc.fln.model.database.DatabaseFactory;
 import br.edu.ifsc.fln.model.domain.*;
@@ -36,25 +35,23 @@ import java.util.ResourceBundle;
 public class FXMLAnchorPaneProcessoOrdemServicoDialogController implements Initializable {
 
     @FXML
-    private ComboBox<Cliente> comboBoxClientes;
+    private DatePicker datePickerAgenda;
     @FXML
-    private DatePicker datePickerData;
+    private TableView<ItemOS> tableViewItensOS;
     @FXML
-    private CheckBox checkBoxPago;
+    private TableColumn<ItemOS, Servico> tableColumnServico;
     @FXML
-    private TableView<ItemDeVenda> tableViewItensDeVenda;
+    private TableColumn<ItemOS, Integer> tableColumnObservacao;
     @FXML
-    private TableColumn<ItemDeVenda, Produto> tableColumnProduto;
-    @FXML
-    private TableColumn<ItemDeVenda, Integer> tableColumnQuantidade;
-    @FXML
-    private TableColumn<ItemDeVenda, Double> tableColumnValor;
+    private TableColumn<ItemOS, Double> tableColumnValor;
     @FXML
     private TextField textFieldValor;
     @FXML
-    private ComboBox<Produto> comboBoxProduto;
+    private ComboBox<Veiculo> comboBoxVeiculos;
     @FXML
-    private TextField textFieldQuantidadeProduto;
+    private ComboBox<Cliente> comboBoxClientes;
+    @FXML
+    private ComboBox<Servico> comboBoxServicos;
     @FXML
     private Button buttonAdicionar;
     @FXML
@@ -68,26 +65,33 @@ public class FXMLAnchorPaneProcessoOrdemServicoDialogController implements Initi
     @FXML
     private MenuItem contextMenuItemRemoverItem;
     @FXML
-    private ChoiceBox choiceBoxSituacao;
+    private ChoiceBox<String> choiceBoxStatus;
     @FXML
-    private TextField textFieldDesconto;
-    
+    private MenuItem contextMenuItemAtualizarObs;
+    @FXML
+    private TextField tfDesconto;
+
+    @FXML
+    private TextField tfTotal;
+
 
     private List<Cliente> listaClientes;
-    private List<Produto> listaProdutos;
+    private List<Servico> listaServicos;
     private ObservableList<Cliente> observableListClientes;
-    private ObservableList<Produto> observableListProdutos;
-    private ObservableList<ItemDeVenda> observableListItensDeVenda;
+    private ObservableList<Servico> observableListServicos;
+    private ObservableList<ItemOS> observableListItensOS;
 
     //atributos para manipulação de banco de dados
     private final Database database = DatabaseFactory.getDatabase("mysql");
     private final Connection connection = database.conectar();
     private final ClienteDAO clienteDAO = new ClienteDAO();
-    private final ProdutoDAO produtoDAO = new ProdutoDAO();
+    private final ServicoDAO servicoDAO = new ServicoDAO();
+    private final VeiculoDAO veiculoDAO = new VeiculoDAO();
+    private final OrdemServicoDAO ordemServicoDAO = new OrdemServicoDAO();
 
     private Stage dialogStage;
     private boolean buttonConfirmarClicked = false;
-    private Venda venda;
+    private OrdemServico ordemServico;
 
     /**
      * Initializes the controller class.
@@ -95,14 +99,17 @@ public class FXMLAnchorPaneProcessoOrdemServicoDialogController implements Initi
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         clienteDAO.setConnection(connection);
-        produtoDAO.setConnection(connection);
+        servicoDAO.setConnection(connection);
+        veiculoDAO.setConnection(connection);
+        ordemServicoDAO.setConnection(connection);
         carregarComboBoxClientes();
-        carregarComboBoxProdutos();
-        carregarChoiceBoxSituacao();
+        carregarComboBoxVeiculos();
+        carregarChoiceBoxServicos();
+        carregarComboBoxStatus();
         setFocusLostHandle();
-        tableColumnProduto.setCellValueFactory(new PropertyValueFactory<>("produto"));
-        tableColumnQuantidade.setCellValueFactory(new PropertyValueFactory<>("quantidade"));
-        tableColumnValor.setCellValueFactory(new PropertyValueFactory<>("valor"));
+        tableColumnServico.setCellValueFactory(new PropertyValueFactory<>("servico"));
+        tableColumnObservacao.setCellValueFactory(new PropertyValueFactory<>("observacoes"));
+        tableColumnValor.setCellValueFactory(new PropertyValueFactory<>("valorServico"));
     }
 
     private void carregarComboBoxClientes() {
@@ -111,14 +118,14 @@ public class FXMLAnchorPaneProcessoOrdemServicoDialogController implements Initi
         comboBoxClientes.setItems(observableListClientes);
     }
 
-    private void carregarComboBoxProdutos() {
+    private void carregarComboBoxServicos() {
         /* carrega apenas os produtos  com estoque cuja SITUACAO está em ATIVO para operações */
-        listaProdutos = produtoDAO.listar(ESituacao.ATIVO);
-        observableListProdutos = FXCollections.observableArrayList(listaProdutos);
-        comboBoxProduto.setItems(observableListProdutos);
+        listaServicos = produtoDAO.listar(ESituacao.ATIVO);
+        observableListServicos = FXCollections.observableArrayList(listaServicos);
+        comboBoxServico.setItems(observableListServicos);
     }
-    
-    
+
+
     public void carregarChoiceBoxSituacao() {
         choiceBoxSituacao.setItems( FXCollections.observableArrayList(EStatusVenda.values()));
         choiceBoxSituacao.getSelectionModel().select(0);
@@ -131,12 +138,12 @@ public class FXMLAnchorPaneProcessoOrdemServicoDialogController implements Initi
                     //System.out.println("teste focus lost");
                     venda.setTaxaDesconto(Double.parseDouble(textFieldDesconto.getText()));
                     textFieldValor.setText(venda.getTotal().toString());
-                    
+
                 }
             }
         });
     }
-    
+
     /**
      * @return the dialogStage
      */
@@ -177,7 +184,7 @@ public class FXMLAnchorPaneProcessoOrdemServicoDialogController implements Initi
      */
     public void setVenda(Venda venda) {
         this.venda = venda;
-        if (venda.getId() != 0) { 
+        if (venda.getId() != 0) {
             comboBoxClientes.getSelectionModel().select(this.venda.getCliente());
             datePickerData.setValue(this.venda.getData());
             checkBoxPago.setSelected(this.venda.isPago());
@@ -235,7 +242,7 @@ public class FXMLAnchorPaneProcessoOrdemServicoDialogController implements Initi
     private void handleButtonCancelar() {
         dialogStage.close();
     }
-    
+
     @FXML
     void handleTableViewMouseClicked(MouseEvent event) {
         ItemDeVenda itemDeVenda
@@ -248,14 +255,14 @@ public class FXMLAnchorPaneProcessoOrdemServicoDialogController implements Initi
             contextMenuItemRemoverItem.setDisable(false);
         }
 
-    }    
+    }
 
     @FXML
     private void handleContextMenuItemAtualizarQtd() {
         ItemDeVenda itemDeVenda
                 = tableViewItensDeVenda.getSelectionModel().getSelectedItem();
         int index = tableViewItensDeVenda.getSelectionModel().getSelectedIndex();
-        
+
         int qtdAtualizada = Integer.parseInt(inputDialog(itemDeVenda.getQuantidade()));
         if (itemDeVenda.getProduto().getEstoque().getQuantidade() >= qtdAtualizada) {
             itemDeVenda.setQuantidade(qtdAtualizada);
@@ -271,7 +278,7 @@ public class FXMLAnchorPaneProcessoOrdemServicoDialogController implements Initi
             alert.show();
         }
     }
-    
+
     private String inputDialog(int value) {
         TextInputDialog dialog = new TextInputDialog(Integer.toString(value));
         dialog.setTitle("Entrada de dados.");
@@ -310,7 +317,7 @@ public class FXMLAnchorPaneProcessoOrdemServicoDialogController implements Initi
         if (observableListItensDeVenda == null) {
             errorMessage += "Itens de venda inválidos!\n";
         }
-        
+
         DecimalFormat df = new DecimalFormat("0.00");
         try {
             textFieldDesconto.setText(df.parse(textFieldDesconto.getText()).toString());

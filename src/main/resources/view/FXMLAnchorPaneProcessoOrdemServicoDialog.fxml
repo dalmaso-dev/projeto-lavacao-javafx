@@ -89,7 +89,7 @@
             <TextField fx:id="tfTotal" alignment="CENTER_RIGHT" editable="false" promptText="Total" GridPane.columnIndex="1" GridPane.rowIndex="7" />
             <HBox alignment="CENTER_LEFT" prefHeight="50.0" prefWidth="340.0" GridPane.columnIndex="1" GridPane.rowIndex="3">
                <children>
-                  <ComboBox fx:id="comboBoxServico" prefHeight="32.0" prefWidth="358.0" promptText="Selecione o serviço..." />
+                  <ComboBox fx:id="comboBoxServicos" prefHeight="32.0" prefWidth="358.0" promptText="Selecione o serviço..." />
                   <Button fx:id="buttonAdicionar" alignment="CENTER" contentDisplay="RIGHT" mnemonicParsing="false" nodeOrientation="RIGHT_TO_LEFT" onAction="#handleButtonAdicionar" prefHeight="32.0" prefWidth="76.0" text="Adicionar" textAlignment="RIGHT" />
                </children>
             </HBox>
