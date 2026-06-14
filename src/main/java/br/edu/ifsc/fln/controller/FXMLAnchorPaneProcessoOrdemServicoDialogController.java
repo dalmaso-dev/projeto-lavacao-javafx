@@ -23,6 +23,7 @@ import java.net.URL;
 import java.sql.Connection;
 import java.text.DecimalFormat;
 import java.text.ParseException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.ResourceBundle;
@@ -87,7 +88,6 @@ public class FXMLAnchorPaneProcessoOrdemServicoDialogController implements Initi
     private final ClienteDAO clienteDAO = new ClienteDAO();
     private final ServicoDAO servicoDAO = new ServicoDAO();
     private final VeiculoDAO veiculoDAO = new VeiculoDAO();
-    private final OrdemServicoDAO ordemServicoDAO = new OrdemServicoDAO();
 
     private Stage dialogStage;
     private boolean buttonConfirmarClicked = false;
@@ -101,7 +101,6 @@ public class FXMLAnchorPaneProcessoOrdemServicoDialogController implements Initi
         clienteDAO.setConnection(connection);
         servicoDAO.setConnection(connection);
         veiculoDAO.setConnection(connection);
-        ordemServicoDAO.setConnection(connection);
         carregarComboBoxClientes();
         carregarChoiceBoxStatus();
         setFocusLostHandle();
@@ -126,18 +125,17 @@ public class FXMLAnchorPaneProcessoOrdemServicoDialogController implements Initi
 
 
     public void carregarChoiceBoxSituacao() {
-        String sttus
-        choiceBoxStatus.setItems( FXCollections.observableArrayList(EStatusVenda.values()));
-        choiceBoxSituacao.getSelectionModel().select(0);
+        choiceBoxStatus.setItems( FXCollections.observableArrayList(Arrays.toString(EStatus.values())));
+        choiceBoxStatus.getSelectionModel().select(0);
     }
 
     private void setFocusLostHandle() {
-        textFieldDesconto.focusedProperty().addListener((ov, oldV, newV) -> {
+        tfDesconto.focusedProperty().addListener((ov, oldV, newV) -> {
         if (!newV) { // focus lost
-                if (textFieldDesconto.getText() != null && !textFieldDesconto.getText().isEmpty()) {
+                if (tfDesconto.getText() != null && !tfDesconto.getText().isEmpty()) {
                     //System.out.println("teste focus lost");
-                    venda.setTaxaDesconto(Double.parseDouble(textFieldDesconto.getText()));
-                    textFieldValor.setText(venda.getTotal().toString());
+                    ordemServico.setDesconto(Double.parseDouble(tfDesconto.getText()));
+                    textFieldValor.setText(String.valueOf(ordemServico.getTotal()));
                 }
             }
         });
@@ -171,50 +169,43 @@ public class FXMLAnchorPaneProcessoOrdemServicoDialogController implements Initi
         this.buttonConfirmarClicked = buttonConfirmarClicked;
     }
 
-    /**
-     * @return the venda
-     */
-    public Venda getVenda() {
-        return venda;
+    public OrdemServico getOrdemServico() {
+        return ordemServico;
     }
 
-    /**
-     * @param venda the venda to set
-     */
-    public void setVenda(Venda venda) {
-        this.venda = venda;
-        if (venda.getId() != 0) {
-            comboBoxClientes.getSelectionModel().select(this.venda.getCliente());
-            datePickerData.setValue(this.venda.getData());
-            checkBoxPago.setSelected(this.venda.isPago());
-            observableListItensDeVenda = FXCollections.observableArrayList(
-                    this.venda.getItensDeVenda());
-            tableViewItensDeVenda.setItems(observableListItensDeVenda);
-            textFieldValor.setText(String.format("%.2f", this.venda.getTotal()));
-            textFieldDesconto.setText(String.format("%.2f", this.venda.getTaxaDesconto()));
-            choiceBoxSituacao.getSelectionModel().select(this.venda.getStatusVenda());
-
+    public void setOrdemServico(OrdemServico ordemServico) {
+        this.ordemServico = ordemServico;
+        if (ordemServico.getNumero() != 0) {
+            comboBoxClientes.getSelectionModel().select(this.ordemServico.getVeiculo().getProprietario();
+            datePickerAgenda.setValue(this.ordemServico.getAgenda());
+            observableListItensOS = FXCollections.observableArrayList(
+                    this.ordemServico.getListaItemOS());
+            tableViewItensOS.setItems(observableListItensOS);
+            textFieldValor.setText(String.format("%.2f", this.ordemServico.getTotal()));
+            tfDesconto.setText(String.format("%.2d%%", this.ordemServico.getDesconto()));
+            choiceBoxStatus.getSelectionModel().select(this.ordemServico.getStatus().name());
         }
     }
 
     @FXML
     public void handleButtonAdicionar() {
-        Produto produto;
-        ItemDeVenda itemDeVenda = new ItemDeVenda();
-        if (comboBoxProduto.getSelectionModel().getSelectedItem() != null) {
-            //o comboBox possui dados sintetizados de Produto para evitar carga desnecessária de informação
-            produto = comboBoxProduto.getSelectionModel().getSelectedItem();
-            //a instrução a seguir busca detalhes do produto selecionado
-            produto = produtoDAO.buscar(produto);
-            if (produto.getEstoque().getQuantidade() >= Integer.parseInt(textFieldQuantidadeProduto.getText())) {
-                itemDeVenda.setProduto(produto);
-                itemDeVenda.setQuantidade(Integer.parseInt(textFieldQuantidadeProduto.getText()));
+        Servico servico;
+        ItemOS itemOS = new ItemOS();
+        if (comboBoxServicos.getSelectionModel().getSelectedItem() != null) {
+            //o comboBox possui dados sintetizados de Servico para evitar carga desnecessária de informação
+            servico = comboBoxServicos.getSelectionModel().getSelectedItem();
+
+                itemOS.setServico(servico);
+                itemOS.setValorServico(Double.parseDouble(textFieldValor.getText()));
+                
+
                 itemDeVenda.setValor(produto.getPreco().multiply(BigDecimal.valueOf(itemDeVenda.getQuantidade())));
                 itemDeVenda.setVenda(venda);
                 venda.getItensDeVenda().add(itemDeVenda);
                 observableListItensDeVenda = FXCollections.observableArrayList(venda.getItensDeVenda());
                 tableViewItensDeVenda.setItems(observableListItensDeVenda);
                 textFieldValor.setText(String.format("%.2f", venda.getTotal()));
+
             } else {
                 Alert alert = new Alert(Alert.AlertType.ERROR);
                 alert.setHeaderText("Problemas na escolha do produto");

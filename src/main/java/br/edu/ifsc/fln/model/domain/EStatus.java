@@ -1,9 +1,9 @@
 package br.edu.ifsc.fln.model.domain;
 
 public enum EStatus {
-    ABERTA("Aberta", "- Há possibilidade de alterar ou cancelar a ordem de serviço."),
-    FECHADA("Fechada", "- Não há possibilidade de alterar ou cancelar a ordem de serviço."),
-    CANCELADA("Cancelada", "- Não há possibilidade de alterar ou cancelar a ordem de serviço.");
+    ABERTA("ABERTA", "- Há possibilidade de alterar ou cancelar a ordem de serviço."),
+    FECHADA("FECHADA", "- Não há possibilidade de alterar ou cancelar a ordem de serviço."),
+    CANCELADA("CANCELADA", "- Não há possibilidade de alterar ou cancelar a ordem de serviço.");
 
     private String nome;
     private String descricao;
