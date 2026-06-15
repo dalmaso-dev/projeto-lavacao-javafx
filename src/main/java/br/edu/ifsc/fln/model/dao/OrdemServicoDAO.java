@@ -169,7 +169,7 @@ public class OrdemServicoDAO {
             os.status as status_os,
             v.placa as placa_veiculo,
             v.observacoes as  observacoes_veiculo,
-            cor.nome as cor_nome,
+            cor.nome as cor,
             mdl.descricao as descricao_modelo,
             mdl.categoria as categoria_modelo,
             mrc.nome as nome_marca,
@@ -223,7 +223,7 @@ public class OrdemServicoDAO {
             os.status as status_os,
             v.placa as placa_veiculo,
             v.observacoes as  observacoes_veiculo,
-            cor.nome as cor_nome,
+            cor.nome as cor,
             mdl.descricao as descricao_modelo,
             mdl.categoria as categoria_modelo,
             mrc.nome as nome_marca,
@@ -279,7 +279,7 @@ public class OrdemServicoDAO {
         veiculo.setPlaca(rs.getString("placa_veiculo"));
         veiculo.setObservacoes(rs.getString("observacoes_veiculo"));
 
-        cor.setNome(rs.getString("nome_cor"));
+        cor.setNome(rs.getString("cor"));
 
         modelo.setDescricao(rs.getString("descricao_modelo"));
         modelo.setCategoria(Enum.valueOf(ECategoria.class, rs.getString("categoria_modelo")));

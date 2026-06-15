@@ -23,7 +23,7 @@
                      <columns>
                         <TableColumn fx:id="tableColumnOrdemServicoNumero" prefWidth="64.80000537633896" resizable="false" text="Número" />
                         <TableColumn fx:id="tableColumnOrdemServicoAgenda" prefWidth="69.60002899169922" resizable="false" text="Agenda" />
-                        <TableColumn fx:id="tableColumnOrdemServicoClienteNome" prefWidth="123.19996643066406" text="Cliente" />
+                        <TableColumn fx:id="tableColumnOrdemServicoCliente" prefWidth="123.19996643066406" text="Cliente" />
                      </columns>
                      <columnResizePolicy>
                         <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />

@@ -63,7 +63,7 @@
                   <Insets right="5.0" />
                </GridPane.margin>
             </Label>
-            <ComboBox fx:id="comboBoxClientes" prefHeight="30.0" prefWidth="445.0" promptText="Selecione o cliente..." GridPane.columnIndex="1">
+            <ComboBox fx:id="comboBoxClientes" onAction="#onActionComboBoxClientes" prefHeight="30.0" prefWidth="445.0" promptText="Selecione o cliente..." GridPane.columnIndex="1">
                <opaqueInsets>
                   <Insets bottom="3.0" />
                </opaqueInsets></ComboBox>
@@ -106,12 +106,12 @@
             </Label>
             <ChoiceBox fx:id="choiceBoxStatus" prefHeight="26.0" prefWidth="340.0" GridPane.columnIndex="1" GridPane.rowIndex="8" />
             <Label alignment="CENTER_RIGHT" contentDisplay="RIGHT" prefHeight="18.0" prefWidth="75.0" text="Veículos:" textAlignment="RIGHT" GridPane.rowIndex="1" />
-            <ComboBox fx:id="comboBoxVeiculos" disable="true" prefHeight="30.0" prefWidth="447.0" promptText="Selecione o veículo..." GridPane.columnIndex="1" GridPane.rowIndex="1">
+            <ComboBox fx:id="comboBoxVeiculos" disable="true" onAction="#onActionComboBoxVeiculos" prefHeight="30.0" prefWidth="447.0" promptText="Selecione o veículo..." GridPane.columnIndex="1" GridPane.rowIndex="1">
                <opaqueInsets>
                   <Insets top="2.0" />
                </opaqueInsets>
             </ComboBox>
-            <TextArea prefHeight="38.0" prefWidth="162.0" promptText="observações de item de serviço..." GridPane.columnIndex="1" GridPane.rowIndex="4">
+            <TextArea fx:id="textAreaObservacoes" prefHeight="38.0" prefWidth="162.0" promptText="observações de item de serviço..." GridPane.columnIndex="1" GridPane.rowIndex="4">
                <GridPane.margin>
                   <Insets />
                </GridPane.margin>

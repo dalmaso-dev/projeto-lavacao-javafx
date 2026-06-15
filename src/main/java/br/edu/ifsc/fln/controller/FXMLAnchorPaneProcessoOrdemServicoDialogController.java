@@ -18,15 +18,15 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.input.MouseEvent;
 import javafx.stage.Stage;
 
-import java.math.BigDecimal;
 import java.net.URL;
 import java.sql.Connection;
 import java.text.DecimalFormat;
 import java.text.ParseException;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.ResourceBundle;
+
+import static java.lang.Double.parseDouble;
 
 /**
  * FXML Controller class
@@ -35,6 +35,8 @@ import java.util.ResourceBundle;
  */
 public class FXMLAnchorPaneProcessoOrdemServicoDialogController implements Initializable {
 
+    @FXML
+    private TextArea textAreaObservacoes;
     @FXML
     private DatePicker datePickerAgenda;
     @FXML
@@ -66,7 +68,7 @@ public class FXMLAnchorPaneProcessoOrdemServicoDialogController implements Initi
     @FXML
     private MenuItem contextMenuItemRemoverItem;
     @FXML
-    private ChoiceBox<String> choiceBoxStatus;
+    private ChoiceBox<EStatus> choiceBoxStatus;
     @FXML
     private MenuItem contextMenuItemAtualizarObs;
     @FXML
@@ -116,7 +118,6 @@ public class FXMLAnchorPaneProcessoOrdemServicoDialogController implements Initi
     }
 
     private void carregarComboBoxServicos() {
-        /* carrega apenas os produtos  com estoque cuja SITUACAO está em ATIVO para operações */
         String categoria = comboBoxVeiculos.getValue().getModelo().getCategoria().name();
         listaServicos = servicoDAO.listarPorCategoria(categoria);
         observableListServicos = FXCollections.observableArrayList(listaServicos);
@@ -124,8 +125,8 @@ public class FXMLAnchorPaneProcessoOrdemServicoDialogController implements Initi
     }
 
 
-    public void carregarChoiceBoxSituacao() {
-        choiceBoxStatus.setItems( FXCollections.observableArrayList(Arrays.toString(EStatus.values())));
+    public void carregarChoiceBoxStatus() {
+        choiceBoxStatus.setItems( FXCollections.observableArrayList(EStatus.values()));
         choiceBoxStatus.getSelectionModel().select(0);
     }
 
@@ -134,8 +135,8 @@ public class FXMLAnchorPaneProcessoOrdemServicoDialogController implements Initi
         if (!newV) { // focus lost
                 if (tfDesconto.getText() != null && !tfDesconto.getText().isEmpty()) {
                     //System.out.println("teste focus lost");
-                    ordemServico.setDesconto(Double.parseDouble(tfDesconto.getText()));
-                    textFieldValor.setText(String.valueOf(ordemServico.getTotal()));
+                    ordemServico.setDesconto(parseDouble(tfDesconto.getText()));
+                    tfTotal.setText(String.valueOf(ordemServico.getTotal()));
                 }
             }
         });
@@ -176,14 +177,14 @@ public class FXMLAnchorPaneProcessoOrdemServicoDialogController implements Initi
     public void setOrdemServico(OrdemServico ordemServico) {
         this.ordemServico = ordemServico;
         if (ordemServico.getNumero() != 0) {
-            comboBoxClientes.getSelectionModel().select(this.ordemServico.getVeiculo().getProprietario();
+            comboBoxClientes.getSelectionModel().select(this.ordemServico.getVeiculo().getProprietario());
             datePickerAgenda.setValue(this.ordemServico.getAgenda());
             observableListItensOS = FXCollections.observableArrayList(
                     this.ordemServico.getListaItemOS());
             tableViewItensOS.setItems(observableListItensOS);
-            textFieldValor.setText(String.format("%.2f", this.ordemServico.getTotal()));
-            tfDesconto.setText(String.format("%.2d%%", this.ordemServico.getDesconto()));
-            choiceBoxStatus.getSelectionModel().select(this.ordemServico.getStatus().name());
+            tfTotal.setText(String.format("%.2f", this.ordemServico.getTotal()));
+            tfDesconto.setText(String.format("%.2f", this.ordemServico.getDesconto()));
+            choiceBoxStatus.getSelectionModel().select(this.ordemServico.getStatus());
         }
     }
 
@@ -191,38 +192,34 @@ public class FXMLAnchorPaneProcessoOrdemServicoDialogController implements Initi
     public void handleButtonAdicionar() {
         Servico servico;
         ItemOS itemOS = new ItemOS();
+
         if (comboBoxServicos.getSelectionModel().getSelectedItem() != null) {
-            //o comboBox possui dados sintetizados de Servico para evitar carga desnecessária de informação
             servico = comboBoxServicos.getSelectionModel().getSelectedItem();
 
-                itemOS.setServico(servico);
-                itemOS.setValorServico(Double.parseDouble(textFieldValor.getText()));
-                
+            itemOS.setServico(servico);
+            itemOS.setValorServico(servico.getValor() - (ordemServico.getDesconto()/100 * servico.getValor()));
+            itemOS.setObservacoes(textAreaObservacoes.getText());
 
-                itemDeVenda.setValor(produto.getPreco().multiply(BigDecimal.valueOf(itemDeVenda.getQuantidade())));
-                itemDeVenda.setVenda(venda);
-                venda.getItensDeVenda().add(itemDeVenda);
-                observableListItensDeVenda = FXCollections.observableArrayList(venda.getItensDeVenda());
-                tableViewItensDeVenda.setItems(observableListItensDeVenda);
-                textFieldValor.setText(String.format("%.2f", venda.getTotal()));
+            ordemServico.getListaItemOS().add(itemOS);
+            observableListItensOS = FXCollections.observableArrayList(ordemServico.getListaItemOS());
+            tableViewItensOS.setItems(observableListItensOS);
+            textFieldValor.setText(String.format("%.2f", ordemServico.getTotal()));
 
-            } else {
-                Alert alert = new Alert(Alert.AlertType.ERROR);
-                alert.setHeaderText("Problemas na escolha do produto");
-                alert.setContentText("Não existe quantidade suficiente de produtos para venda.");
-                alert.show();
-            }
+//                Alert alert = new Alert(Alert.AlertType.ERROR);
+//                alert.setHeaderText("Problemas na escolha do produto");
+//                alert.setContentText("Não existe quantidade suficiente de produtos para venda.");
+//                alert.show();
+
         }
     }
 
     @FXML
     private void handleButtonConfirmar() {
         if (validarEntradaDeDados()) {
-            venda.setCliente(comboBoxClientes.getSelectionModel().getSelectedItem());
-            venda.setPago(checkBoxPago.isSelected());
-            venda.setData(datePickerData.getValue());
-            venda.setStatusVenda((EStatusVenda)choiceBoxSituacao.getSelectionModel().getSelectedItem());
-            venda.setTaxaDesconto(Double.parseDouble(textFieldDesconto.getText()));
+            ordemServico.setVeiculo(comboBoxVeiculos.getSelectionModel().getSelectedItem());
+            ordemServico.setAgenda(datePickerAgenda.getValue());
+            ordemServico.setStatus( choiceBoxStatus.getSelectionModel().getSelectedItem());
+            ordemServico.setDesconto(parseDouble(tfDesconto.getText()));
             buttonConfirmarClicked = true;
             dialogStage.close();
         }
@@ -235,45 +232,35 @@ public class FXMLAnchorPaneProcessoOrdemServicoDialogController implements Initi
 
     @FXML
     void handleTableViewMouseClicked(MouseEvent event) {
-        ItemDeVenda itemDeVenda
-                = tableViewItensDeVenda.getSelectionModel().getSelectedItem();
-        if (itemDeVenda == null) {
-            contextMenuItemAtualizarQtd.setDisable(true);
+        ItemOS itemOS
+                = tableViewItensOS.getSelectionModel().getSelectedItem();
+        if (itemOS == null) {
             contextMenuItemRemoverItem.setDisable(true);
+            contextMenuItemAtualizarObs.setDisable(true);
         } else {
-            contextMenuItemAtualizarQtd.setDisable(false);
+            contextMenuItemAtualizarObs.setDisable(false);
             contextMenuItemRemoverItem.setDisable(false);
         }
-
     }
 
     @FXML
-    private void handleContextMenuItemAtualizarQtd() {
-        ItemDeVenda itemDeVenda
-                = tableViewItensDeVenda.getSelectionModel().getSelectedItem();
-        int index = tableViewItensDeVenda.getSelectionModel().getSelectedIndex();
+    private void handleContextMenuItemAtualizarObs() {
+        ItemOS itemOS = tableViewItensOS.getSelectionModel().getSelectedItem();
+        int index = tableViewItensOS.getSelectionModel().getSelectedIndex();
 
-        int qtdAtualizada = Integer.parseInt(inputDialog(itemDeVenda.getQuantidade()));
-        if (itemDeVenda.getProduto().getEstoque().getQuantidade() >= qtdAtualizada) {
-            itemDeVenda.setQuantidade(qtdAtualizada);
-            //venda.getItensDeVenda().set(venda.getItensDeVenda().indexOf(itemDeVenda),itemDeVenda);
-            venda.getItensDeVenda().set(index, itemDeVenda);
-            itemDeVenda.setValor(itemDeVenda.getProduto().getPreco().multiply(BigDecimal.valueOf(itemDeVenda.getQuantidade())));
-            tableViewItensDeVenda.refresh();
-            textFieldValor.setText(String.format("%.2f", venda.getTotal()));
-        } else {
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setHeaderText("Erro no estoque");
-            alert.setContentText("Não há quantidade suficiente de produtos para venda.");
-            alert.show();
-        }
+        String obsAtualizada = inputDialog(itemOS.getObservacoes());
+
+        itemOS.setObservacoes(obsAtualizada);
+
+        ordemServico.getListaItemOS().set(index, itemOS);
+        tableViewItensOS.refresh();
     }
 
-    private String inputDialog(int value) {
-        TextInputDialog dialog = new TextInputDialog(Integer.toString(value));
+    private String inputDialog(String value) {
+        TextInputDialog dialog = new TextInputDialog(value);
         dialog.setTitle("Entrada de dados.");
-        dialog.setHeaderText("Atualização da quantidade de produtos.");
-        dialog.setContentText("Quantidade: ");
+        dialog.setHeaderText("Atualização da observação de itensOS.");
+        dialog.setContentText("Observação: ");
 
         // Traditional way to get the response value.
         Optional<String> result = dialog.showAndWait();
@@ -282,35 +269,53 @@ public class FXMLAnchorPaneProcessoOrdemServicoDialogController implements Initi
 
     @FXML
     private void handleContextMenuItemRemoverItem() {
-        ItemDeVenda itemDeVenda
-                = tableViewItensDeVenda.getSelectionModel().getSelectedItem();
-        int index = tableViewItensDeVenda.getSelectionModel().getSelectedIndex();
-        venda.getItensDeVenda().remove(index);
-        observableListItensDeVenda = FXCollections.observableArrayList(venda.getItensDeVenda());
-        tableViewItensDeVenda.setItems(observableListItensDeVenda);
+        ItemOS itemOS = tableViewItensOS.getSelectionModel().getSelectedItem();
+        int index = tableViewItensOS.getSelectionModel().getSelectedIndex();
+        ordemServico.getListaItemOS().remove(index);
+        observableListItensOS = FXCollections.observableArrayList(ordemServico.getListaItemOS());
+        tableViewItensOS.setItems(observableListItensOS);
 
-        textFieldValor.setText(String.format("%.2f", venda.getTotal()));
+        textFieldValor.setText(String.format("%.2f", ordemServico.getTotal()));
     }
+
+    @FXML
+    private void onActionComboBoxClientes() {
+        Cliente cliente = comboBoxClientes.getValue();
+        List<Veiculo> listaVeiculos = veiculoDAO.listarPorCliente(cliente);
+        ObservableList<Veiculo> observableListVeiculos = FXCollections.observableArrayList(listaVeiculos);
+        comboBoxVeiculos.setItems(observableListVeiculos);
+        comboBoxVeiculos.setDisable(false);
+    }
+
+    @FXML
+    private void onActionComboBoxVeiculos() {
+        Veiculo veiculo = comboBoxVeiculos.getValue();
+        List<Servico> listaServicos = servicoDAO.listarPorCategoria(veiculo.getModelo().getCategoria().name());
+        ObservableList<Servico> observableListServicos = FXCollections.observableArrayList(listaServicos);
+        comboBoxServicos.setItems(observableListServicos);
+        comboBoxServicos.setDisable(false);
+    }
+
 
     //validar entrada de dados do cadastro
     private boolean validarEntradaDeDados() {
         String errorMessage = "";
 
-        if (comboBoxClientes.getSelectionModel().getSelectedItem() == null) {
-            errorMessage += "Cliente inválido!\n";
+        if (comboBoxVeiculos.getSelectionModel().getSelectedItem() == null) {
+            errorMessage += "Veículo inválido!\n";
         }
 
-        if (datePickerData.getValue() == null) {
+        if (datePickerAgenda.getValue() == null) {
             errorMessage += "Data inválida!\n";
         }
 
-        if (observableListItensDeVenda == null) {
+        if (observableListItensOS == null) {
             errorMessage += "Itens de venda inválidos!\n";
         }
 
         DecimalFormat df = new DecimalFormat("0.00");
         try {
-            textFieldDesconto.setText(df.parse(textFieldDesconto.getText()).toString());
+            tfDesconto.setText(df.parse(tfDesconto.getText()).toString());
         } catch (ParseException ex) {
             errorMessage += "A taxa de desconto está incorreta! Use \",\" como ponto decimal.\n";
         }

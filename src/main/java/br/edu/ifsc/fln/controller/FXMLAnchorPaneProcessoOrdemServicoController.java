@@ -124,7 +124,7 @@ public class FXMLAnchorPaneProcessoOrdemServicoController implements Initializab
         });
        
         tableColumnOrdemServicoAgenda.setCellValueFactory(new PropertyValueFactory<>("agenda"));
-        tableColumnOrdemServicoCliente.setCellValueFactory(new PropertyValueFactory<>("cliente"));
+        tableColumnOrdemServicoCliente.setCellValueFactory(new PropertyValueFactory<>("veiculo"));
 
         listaOrdensServicos = ordemServicoDAO.listar();
 

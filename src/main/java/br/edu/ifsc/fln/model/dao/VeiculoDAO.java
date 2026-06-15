@@ -110,6 +110,46 @@ public class VeiculoDAO {
         return veiculos;
     }
 
+    public List<Veiculo> listarPorCliente(Cliente cliente) {
+        String sql = """
+        SELECT
+        v.id as id_veiculo, v.placa as placa, v.observacoes as observacoes,
+        cor.id as id_cor, cor.nome as nome_cor,
+        mdl.id as id_modelo, mdl.descricao as desc_modelo, mdl.categoria as categoria_modelo,
+        mot.potencia as potencia, mot.tipo_combustivel as combustivel,
+        mrc.id as id_marca, mrc.nome as nome_marca,
+        c.id as id_cliente, c.nome as nome_cliente, c.celular as celular_cliente, c.email as email_cliente,
+        c.data_cadastro as  data_cadastro,
+        p.quantidade as quantidade_pontuacao,
+        pf.cpf as cpf, pf.data_nascimento as data_nasc,
+        pj.cnpj as cnpj, pj.inscricao_estadual as insc_estadual
+        FROM veiculo v INNER JOIN cor ON v.id_cor = cor.id
+        INNER JOIN modelo mdl ON v.id_modelo = mdl.id
+        INNER JOIN marca mrc ON mdl.marca_id = mrc.id
+        INNER JOIN motor mot ON mdl.id = mot.id_modelo
+        INNER JOIN cliente c ON c.id= v.id_cliente
+        INNER JOIN pontuacao p on c.id = p.id_cliente
+        LEFT JOIN pessoa_fisica pf on pf.id_cliente = c.id
+        LEFT JOIN pessoa_juridica pj on pj.id_cliente = c.id
+        Where c.id = ?
+        """;
+
+        List<Veiculo> veiculos = new ArrayList<>();
+
+        try {
+            PreparedStatement stmt = connection.prepareStatement(sql);
+            stmt.setInt(1, cliente.getId());
+            ResultSet resultado = stmt.executeQuery();
+            while (resultado.next()) {
+                Veiculo veiculo = populateVO(resultado);
+                veiculos.add(veiculo);
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(VeiculoDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return veiculos;
+    }
+
     public Veiculo buscar(Veiculo veiculo) {
         Veiculo retorno = buscar(veiculo.getId());
         return retorno;
