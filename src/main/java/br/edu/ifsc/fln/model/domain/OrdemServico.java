@@ -56,11 +56,10 @@ public class OrdemServico {
         }
         else {
             for(ItemOS itemOS : listaItemOS) {
-                total += itemOS.getValorServico();
-            }
-            //verificando se há desconto para não calculá-lo sem necessidade
-            if (desconto > 0) {
-                total -= (desconto/100) * total;
+                if (desconto > 0) {
+                    itemOS.setValorServico(itemOS.getServico().getValor() - (this.getDesconto()/100 * itemOS.getServico().getValor()));
+                    total += itemOS.getValorServico();
+                }
             }
         }
 

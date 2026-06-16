@@ -9,6 +9,7 @@ import br.edu.ifsc.fln.model.dao.*;
 import br.edu.ifsc.fln.model.database.Database;
 import br.edu.ifsc.fln.model.database.DatabaseFactory;
 import br.edu.ifsc.fln.model.domain.*;
+import br.edu.ifsc.fln.model.exceptions.ExceptionLavacao;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -48,7 +49,7 @@ public class FXMLAnchorPaneProcessoOrdemServicoDialogController implements Initi
     @FXML
     private TableColumn<ItemOS, Double> tableColumnValor;
     @FXML
-    private TextField textFieldValor;
+    private TextField tfTotal;
     @FXML
     private ComboBox<Veiculo> comboBoxVeiculos;
     @FXML
@@ -64,8 +65,6 @@ public class FXMLAnchorPaneProcessoOrdemServicoDialogController implements Initi
     @FXML
     private ContextMenu contextMenuTableView;
     @FXML
-    private MenuItem contextMenuItemAtualizarQtd;
-    @FXML
     private MenuItem contextMenuItemRemoverItem;
     @FXML
     private ChoiceBox<EStatus> choiceBoxStatus;
@@ -73,9 +72,6 @@ public class FXMLAnchorPaneProcessoOrdemServicoDialogController implements Initi
     private MenuItem contextMenuItemAtualizarObs;
     @FXML
     private TextField tfDesconto;
-
-    @FXML
-    private TextField tfTotal;
 
 
     private List<Cliente> listaClientes;
@@ -203,7 +199,16 @@ public class FXMLAnchorPaneProcessoOrdemServicoDialogController implements Initi
             ordemServico.getListaItemOS().add(itemOS);
             observableListItensOS = FXCollections.observableArrayList(ordemServico.getListaItemOS());
             tableViewItensOS.setItems(observableListItensOS);
-            textFieldValor.setText(String.format("%.2f", ordemServico.getTotal()));
+
+            try {
+                ordemServico.calcularServico();
+            } catch (ExceptionLavacao e) {
+                throw new RuntimeException(e);
+            }
+
+            if (tfTotal != null) {
+                tfTotal.setText(String.format("%.2f", ordemServico.getTotal()));
+            }
 
 //                Alert alert = new Alert(Alert.AlertType.ERROR);
 //                alert.setHeaderText("Problemas na escolha do produto");
@@ -275,7 +280,7 @@ public class FXMLAnchorPaneProcessoOrdemServicoDialogController implements Initi
         observableListItensOS = FXCollections.observableArrayList(ordemServico.getListaItemOS());
         tableViewItensOS.setItems(observableListItensOS);
 
-        textFieldValor.setText(String.format("%.2f", ordemServico.getTotal()));
+        tfTotal.setText(String.format("%.2f", ordemServico.getTotal()));
     }
 
     @FXML
@@ -289,11 +294,35 @@ public class FXMLAnchorPaneProcessoOrdemServicoDialogController implements Initi
 
     @FXML
     private void onActionComboBoxVeiculos() {
-        Veiculo veiculo = comboBoxVeiculos.getValue();
-        List<Servico> listaServicos = servicoDAO.listarPorCategoria(veiculo.getModelo().getCategoria().name());
-        ObservableList<Servico> observableListServicos = FXCollections.observableArrayList(listaServicos);
-        comboBoxServicos.setItems(observableListServicos);
+        carregarComboBoxServicos();
         comboBoxServicos.setDisable(false);
+    }
+
+    @FXML
+    private void onActionTextFieldDesconto() {
+        String errorMessage = "";
+
+        DecimalFormat df = new DecimalFormat("0.00");
+        try {
+            tfDesconto.setText(df.parse(tfDesconto.getText()).toString());
+            this.ordemServico.setDesconto(Double.valueOf(tfDesconto.getText()));
+            try {
+                this.ordemServico.calcularServico();
+            } catch (ExceptionLavacao e) {
+                throw new RuntimeException(e);
+            }
+            tfTotal.setText(String.format("%.2f", ordemServico.getTotal()));
+            tableViewItensOS.refresh();
+        } catch (ParseException ex) {
+            errorMessage += "A taxa de desconto está incorreta! Use \",\" como ponto decimal.\n";
+
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Erro no cadastro");
+            alert.setHeaderText("Campos inválidos, por favor corrija...");
+            alert.setContentText(errorMessage);
+            alert.show();
+        }
+
     }
 
 

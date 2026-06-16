@@ -98,7 +98,7 @@
                   <Insets right="5.0" />
                </GridPane.margin>
             </Label>
-            <TextField fx:id="tfDesconto" alignment="CENTER_RIGHT" promptText="0,0" text="0,0" GridPane.columnIndex="1" GridPane.rowIndex="6" />
+            <TextField fx:id="tfDesconto" alignment="CENTER_RIGHT" onAction="#onActionTextFieldDesconto" promptText="0,0" text="0,0" GridPane.columnIndex="1" GridPane.rowIndex="6" />
             <Label alignment="CENTER_RIGHT" prefHeight="18.0" prefWidth="82.0" text="Status:" GridPane.rowIndex="8">
                <GridPane.margin>
                   <Insets right="5.0" />
