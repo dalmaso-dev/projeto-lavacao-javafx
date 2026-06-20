@@ -16,6 +16,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.input.DataFormat;
 import javafx.scene.input.MouseEvent;
 import javafx.stage.Stage;
 
@@ -26,8 +27,6 @@ import java.text.ParseException;
 import java.util.List;
 import java.util.Optional;
 import java.util.ResourceBundle;
-
-import static java.lang.Double.parseDouble;
 
 /**
  * FXML Controller class
@@ -101,7 +100,6 @@ public class FXMLAnchorPaneProcessoOrdemServicoDialogController implements Initi
         veiculoDAO.setConnection(connection);
         carregarComboBoxClientes();
         carregarChoiceBoxStatus();
-        setFocusLostHandle();
         tableColumnServico.setCellValueFactory(new PropertyValueFactory<>("servico"));
         tableColumnObservacao.setCellValueFactory(new PropertyValueFactory<>("observacoes"));
         tableColumnValor.setCellValueFactory(new PropertyValueFactory<>("valorServico"));
@@ -125,18 +123,24 @@ public class FXMLAnchorPaneProcessoOrdemServicoDialogController implements Initi
         choiceBoxStatus.setItems( FXCollections.observableArrayList(EStatus.values()));
         choiceBoxStatus.getSelectionModel().select(0);
     }
-
-    private void setFocusLostHandle() {
-        tfDesconto.focusedProperty().addListener((ov, oldV, newV) -> {
-        if (!newV) { // focus lost
-                if (tfDesconto.getText() != null && !tfDesconto.getText().isEmpty()) {
-                    //System.out.println("teste focus lost");
-                    ordemServico.setDesconto(parseDouble(tfDesconto.getText()));
-                    tfTotal.setText(String.valueOf(ordemServico.getTotal()));
-                }
-            }
-        });
-    }
+//
+//    private void setFocusLostHandle() {
+//        tfDesconto.focusedProperty().addListener((ov, oldV, newV) -> {
+//        if (!newV) { // focus lost
+//                if (tfDesconto.getText() != null && !tfDesconto.getText().isEmpty()) {
+//                    //System.out.println("teste focus lost");
+//                    DecimalFormat df = new DecimalFormat("0.00");
+//                    try {
+//                        tfDesconto.setText(df.parse(tfDesconto.getText()).toString());
+//                    } catch (ParseException ex) {
+//                        Logger.getLogger(FXMLAnchorPaneProcessoOrdemServicoDialogController.class.getName()).log(Level.SEVERE, null, ex);
+//                    }
+//                    ordemServico.setDesconto(Double.valueOf(tfDesconto.getText()));
+//                    tfTotal.setText(String.valueOf(ordemServico.getTotal()));
+//                }
+//            }
+//        });
+//    }
 
     /**
      * @return the dialogStage
@@ -174,18 +178,26 @@ public class FXMLAnchorPaneProcessoOrdemServicoDialogController implements Initi
         this.ordemServico = ordemServico;
         if (ordemServico.getNumero() != 0) {
             comboBoxClientes.getSelectionModel().select(this.ordemServico.getVeiculo().getProprietario());
+            comboBoxVeiculos.getSelectionModel().select(this.ordemServico.getVeiculo());
+            carregarComboBoxServicos();
             datePickerAgenda.setValue(this.ordemServico.getAgenda());
-            observableListItensOS = FXCollections.observableArrayList(
-                    this.ordemServico.getListaItemOS());
+            observableListItensOS = FXCollections.observableArrayList(this.ordemServico.getListaItemOS());
             tableViewItensOS.setItems(observableListItensOS);
             tfTotal.setText(String.format("%.2f", this.ordemServico.getTotal()));
             tfDesconto.setText(String.format("%.2f", this.ordemServico.getDesconto()));
             choiceBoxStatus.getSelectionModel().select(this.ordemServico.getStatus());
+
+            comboBoxClientes.setEditable(false);
+            comboBoxVeiculos.setEditable(false);
+
+            if (ordemServico.getStatus().name().equals("FECHADA")) {
+                choiceBoxStatus.setDisable(true);
+            }
         }
     }
 
     @FXML
-    public void handleButtonAdicionar() {
+    public void handleButtonAdicionar() throws ExceptionLavacao {
         Servico servico;
         ItemOS itemOS = new ItemOS();
 
@@ -195,6 +207,12 @@ public class FXMLAnchorPaneProcessoOrdemServicoDialogController implements Initi
             itemOS.setServico(servico);
             itemOS.setValorServico(servico.getValor() - (ordemServico.getDesconto()/100 * servico.getValor()));
             itemOS.setObservacoes(textAreaObservacoes.getText());
+
+            for (ItemOS item : ordemServico.getListaItemOS()) {
+                if (item.getServico().getDescricao().equals(servico.getDescricao())) {
+                    throw new ExceptionLavacao("Este serviço já está inserido na lista de itens da OS.");
+                }
+            }
 
             ordemServico.getListaItemOS().add(itemOS);
             observableListItensOS = FXCollections.observableArrayList(ordemServico.getListaItemOS());
@@ -206,15 +224,7 @@ public class FXMLAnchorPaneProcessoOrdemServicoDialogController implements Initi
                 throw new RuntimeException(e);
             }
 
-            if (tfTotal != null) {
-                tfTotal.setText(String.format("%.2f", ordemServico.getTotal()));
-            }
-
-//                Alert alert = new Alert(Alert.AlertType.ERROR);
-//                alert.setHeaderText("Problemas na escolha do produto");
-//                alert.setContentText("Não existe quantidade suficiente de produtos para venda.");
-//                alert.show();
-
+            tfTotal.setText(String.format("%.2f", ordemServico.getTotal()));
         }
     }
 
@@ -223,8 +233,13 @@ public class FXMLAnchorPaneProcessoOrdemServicoDialogController implements Initi
         if (validarEntradaDeDados()) {
             ordemServico.setVeiculo(comboBoxVeiculos.getSelectionModel().getSelectedItem());
             ordemServico.setAgenda(datePickerAgenda.getValue());
-            ordemServico.setStatus( choiceBoxStatus.getSelectionModel().getSelectedItem());
-            ordemServico.setDesconto(parseDouble(tfDesconto.getText()));
+            ordemServico.setStatus(choiceBoxStatus.getSelectionModel().getSelectedItem());
+            ordemServico.setDesconto(Double.valueOf(tfDesconto.getText()));
+            try {
+                ordemServico.calcularServico();
+            } catch (ExceptionLavacao e) {
+                throw new RuntimeException(e);
+            }
             buttonConfirmarClicked = true;
             dialogStage.close();
         }
@@ -274,11 +289,16 @@ public class FXMLAnchorPaneProcessoOrdemServicoDialogController implements Initi
 
     @FXML
     private void handleContextMenuItemRemoverItem() {
-        ItemOS itemOS = tableViewItensOS.getSelectionModel().getSelectedItem();
         int index = tableViewItensOS.getSelectionModel().getSelectedIndex();
         ordemServico.getListaItemOS().remove(index);
         observableListItensOS = FXCollections.observableArrayList(ordemServico.getListaItemOS());
         tableViewItensOS.setItems(observableListItensOS);
+
+        try {
+            ordemServico.calcularServico();
+        } catch (ExceptionLavacao e) {
+            throw new RuntimeException(e);
+        }
 
         tfTotal.setText(String.format("%.2f", ordemServico.getTotal()));
     }

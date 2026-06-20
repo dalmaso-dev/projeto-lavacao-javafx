@@ -39,10 +39,12 @@ public class OrdemServicoDAO {
             stmt.execute();
 
             //READ do número da OS gerado para fazer CREATE nos ItemOS
-            stmt = connection.prepareStatement("(SELECT MAX(numero) FROM ordem_servico)");
+            stmt = connection.prepareStatement("(SELECT MAX(numero) as numero FROM ordem_servico)");
             ResultSet rs = stmt.executeQuery();
 
-            ordemServico.setNumero(rs.getLong("numero_os"));
+            while(rs.next()) {
+                ordemServico.setNumero(rs.getLong("numero"));
+            }
 
             //CREATE dos itens da OS
             inserirItemOS(ordemServico);
@@ -347,16 +349,15 @@ public class OrdemServicoDAO {
     }
 
     private void inserirItemOS(OrdemServico ordemServico) {
-        String sqlItemOS = "INSERT INTO item_os(numero_os, id_servico, valor_servico) VALUES(?,?,?)";
+        String sqlItemOS = "INSERT INTO item_os(numero_os, id_servico, valor_servico, observacoes) VALUES(?,?,?,?)";
 
         try {
-            PreparedStatement stmt = connection.prepareStatement(sqlItemOS);
-
-            stmt.setLong(1, (ordemServico.getNumero()));
-
             for (ItemOS itemOS : ordemServico.getListaItemOS()) {
+                PreparedStatement stmt = connection.prepareStatement(sqlItemOS);
+                stmt.setLong(1, (ordemServico.getNumero()));
                 stmt.setInt(2, itemOS.getServico().getId());
                 stmt.setDouble(3, itemOS.getValorServico());
+                stmt.setString(4, itemOS.getObservacoes());
                 stmt.execute();
             }
         } catch (SQLException ex) {

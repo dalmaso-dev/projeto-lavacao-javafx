@@ -10,6 +10,7 @@ import br.edu.ifsc.fln.model.database.Database;
 import br.edu.ifsc.fln.model.database.DatabaseFactory;
 import br.edu.ifsc.fln.model.domain.ItemOS;
 import br.edu.ifsc.fln.model.domain.OrdemServico;
+import br.edu.ifsc.fln.model.exceptions.ExceptionLavacao;
 import br.edu.ifsc.fln.utils.AlertDialog;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -136,7 +137,11 @@ public class FXMLAnchorPaneProcessoOrdemServicoController implements Initializab
         if (ordemServico != null) {
             labelOrdemServicoNumero.setText(Long.toString(ordemServico.getNumero()));
             labelOrdemServicoAgenda.setText(ordemServico.getAgenda().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
-            labelOrdemServicoTotal.setText(String.format("%.2f", ordemServico.getTotal()));
+            try {
+                labelOrdemServicoTotal.setText(String.format("%.2f", ordemServico.calcularServico()));
+            } catch (ExceptionLavacao e) {
+                throw new RuntimeException(e);
+            }
             labelOrdemServicoDesconto.setText((String.format("%.2f", ordemServico.getDesconto())) + "%");
             labelOrdemServicoSituacao.setText(ordemServico.getStatus().name());
             labelOrdemServicoClienteNome.setText(ordemServico.getVeiculo().getProprietario().getNome());

@@ -8,7 +8,7 @@ import java.util.List;
 
 public class OrdemServico {
     private long numero;
-    private double total;
+    private double total = 0;
     private LocalDate agenda;
     private double desconto = 0;
 
@@ -56,7 +56,7 @@ public class OrdemServico {
         }
         else {
             for(ItemOS itemOS : listaItemOS) {
-                if (desconto > 0) {
+                if (desconto >= 0) {
                     itemOS.setValorServico(itemOS.getServico().getValor() - (this.getDesconto()/100 * itemOS.getServico().getValor()));
                     total += itemOS.getValorServico();
                 }

@@ -86,7 +86,7 @@
                   <Insets top="3.0" />
                </GridPane.margin>
             </TableView>
-            <TextField fx:id="tfTotal" alignment="CENTER_RIGHT" editable="false" promptText="Total" GridPane.columnIndex="1" GridPane.rowIndex="7" />
+            <TextField fx:id="tfTotal" alignment="CENTER_RIGHT" editable="false" promptText="Total" text="0" GridPane.columnIndex="1" GridPane.rowIndex="7" />
             <HBox alignment="CENTER_LEFT" prefHeight="50.0" prefWidth="340.0" GridPane.columnIndex="1" GridPane.rowIndex="3">
                <children>
                   <ComboBox fx:id="comboBoxServicos" prefHeight="32.0" prefWidth="358.0" promptText="Selecione o serviço..." />

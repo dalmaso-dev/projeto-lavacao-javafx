@@ -109,7 +109,7 @@ CREATE TABLE veiculo (
 CREATE TABLE ordem_servico(
     numero bigint not null auto_increment,
     total double not null,
-    agenda datetime not null,
+    agenda date not null,
     desconto double not null default 0,
     status ENUM('ABERTA','FECHADA','CANCELADA') NOT NULL DEFAULT 'ABERTA',
     id_veiculo INT NOT NULL,
@@ -127,9 +127,9 @@ CREATE TABLE item_os (
         primary key(numero_os, id_servico),
     CONSTRAINT fk_item_os_ordem_servico
         FOREIGN KEY (numero_os)
-            REFERENCES ordem_servico(numero),
+            REFERENCES ordem_servico(numero) on delete cascade on update cascade,
     CONSTRAINT fk_item_os_servico
-        FOREIGN KEY (id_servico) REFERENCES servico(id)
+        FOREIGN KEY (id_servico) REFERENCES servico(id) on delete cascade on update cascade
 )engine = InnoDB;
 
 
