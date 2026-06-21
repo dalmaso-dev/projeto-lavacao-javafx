@@ -14,6 +14,8 @@ import java.util.List;
 import java.util.ResourceBundle;
 
 import br.edu.ifsc.fln.model.domain.Cor;
+import br.edu.ifsc.fln.model.exceptions.DAOException;
+import br.edu.ifsc.fln.utils.AlertDialog;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -35,7 +37,6 @@ import javafx.stage.Stage;
  * @author mpisc
  */
 public class FXMLAnchorPaneCadastroCorController implements Initializable {
-
 
     @FXML
     private Button btnAlterar;
@@ -80,7 +81,11 @@ public class FXMLAnchorPaneCadastroCorController implements Initializable {
     public void carregarTableViewCor() {
         tableColumnCorNome.setCellValueFactory(new PropertyValueFactory<>("nome"));
 
-        listaCores = corDAO.listar();
+        try {
+            listaCores = corDAO.listar();
+        } catch (DAOException e) {
+            AlertDialog.exceptionMessage(e);
+        }
 
         observableListCores = FXCollections.observableArrayList(listaCores);
         tableViewCores.setItems(observableListCores);
@@ -102,7 +107,11 @@ public class FXMLAnchorPaneCadastroCorController implements Initializable {
         Cor cor = new Cor();
         boolean btConfirmarClicked = showFXMLAnchorPaneCadastroCorDialogController(cor);
         if (btConfirmarClicked) {
-            corDAO.inserir(cor);
+            try {
+                corDAO.inserir(cor);
+            } catch (DAOException e) {
+                AlertDialog.exceptionMessage(e);
+            }
             carregarTableViewCor();
         }
     }
@@ -113,7 +122,11 @@ public class FXMLAnchorPaneCadastroCorController implements Initializable {
         if (cor != null) {
             boolean btConfirmarClicked = showFXMLAnchorPaneCadastroCorDialogController(cor);
             if (btConfirmarClicked) {
-                corDAO.alterar(cor);
+                try {
+                    corDAO.alterar(cor);
+                } catch (DAOException e) {
+                    AlertDialog.exceptionMessage(e);
+                }
                 carregarTableViewCor();
             }
         } else {
@@ -127,7 +140,11 @@ public class FXMLAnchorPaneCadastroCorController implements Initializable {
     public void handleBtExcluir() throws IOException {
         Cor cor = tableViewCores.getSelectionModel().getSelectedItem();
         if (cor != null) {
-            corDAO.remover(cor);
+            try {
+                corDAO.remover(cor);
+            } catch (DAOException e) {
+                AlertDialog.exceptionMessage(e);
+            }
             carregarTableViewCor();
         } else {
             Alert alert = new Alert(Alert.AlertType.ERROR);

@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.ResourceBundle;
 
+import br.edu.ifsc.fln.model.exceptions.DAOException;
 import br.edu.ifsc.fln.utils.AlertDialog;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
@@ -110,7 +111,7 @@ public class FXMLAnchorPaneCadastroClienteController implements Initializable {
         carregarTableViewCliente();
 
         tableViewClientes.getSelectionModel().selectedItemProperty().addListener(
-                (observable, oldValue, newValue) -> selecionarItemTableViewClientees(newValue));
+                (observable, oldValue, newValue) -> selecionarItemTableViewClientes(newValue));
     }
 
     public void carregarTableViewCliente() {
@@ -136,13 +137,17 @@ public class FXMLAnchorPaneCadastroClienteController implements Initializable {
             return new SimpleStringProperty(tipo);
         });
 
-        listaClientes = clienteDAO.listar();
+        try {
+            listaClientes = clienteDAO.listar();
+        } catch (DAOException e) {
+            AlertDialog.exceptionMessage(e);
+        }
 
         observableListClientes = FXCollections.observableArrayList(listaClientes);
         tableViewClientes.setItems(observableListClientes);
     }
 
-    public void selecionarItemTableViewClientees(Cliente cliente) {
+    public void selecionarItemTableViewClientes(Cliente cliente) {
         if (cliente != null) {
             lbClienteId.setText(String.valueOf(cliente.getId()));
             lbClienteNome.setText(cliente.getNome());
@@ -185,7 +190,11 @@ public class FXMLAnchorPaneCadastroClienteController implements Initializable {
         if (cliente != null) {
             boolean btConfirmarClicked = showFXMLAnchorPaneCadastroClienteDialogController(cliente);
             if (btConfirmarClicked) {
-                clienteDAO.inserir(cliente);
+                try {
+                    clienteDAO.inserir(cliente);
+                } catch (DAOException e) {
+                    AlertDialog.exceptionMessage(e);
+                }
                 carregarTableViewCliente();
             }
         }
@@ -216,7 +225,11 @@ public class FXMLAnchorPaneCadastroClienteController implements Initializable {
         if (cliente != null) {
             boolean btConfirmarClicked = showFXMLAnchorPaneCadastroClienteDialogController(cliente);
             if (btConfirmarClicked) {
-                clienteDAO.alterar(cliente);
+                try {
+                    clienteDAO.alterar(cliente);
+                } catch (DAOException e) {
+                    AlertDialog.exceptionMessage(e);
+                }
                 carregarTableViewCliente();
             }
         } else {
@@ -231,7 +244,11 @@ public class FXMLAnchorPaneCadastroClienteController implements Initializable {
         Cliente cliente = tableViewClientes.getSelectionModel().getSelectedItem();
         if (cliente != null) {
             if (AlertDialog.confirmarExclusao("Tem certeza que deseja excluir o cliente " + cliente.getNome())) {
-                clienteDAO.remover(cliente);
+                try {
+                    clienteDAO.remover(cliente);
+                } catch (DAOException e) {
+                    AlertDialog.exceptionMessage(e);
+                }
                 carregarTableViewCliente();
             }
         } else {

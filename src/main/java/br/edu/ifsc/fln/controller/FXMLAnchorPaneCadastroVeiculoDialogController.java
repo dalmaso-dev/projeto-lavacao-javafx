@@ -16,6 +16,8 @@ import br.edu.ifsc.fln.model.dao.ModeloDAO;
 import br.edu.ifsc.fln.model.database.Database;
 import br.edu.ifsc.fln.model.database.DatabaseFactory;
 import br.edu.ifsc.fln.model.domain.*;
+import br.edu.ifsc.fln.model.exceptions.DAOException;
+import br.edu.ifsc.fln.utils.AlertDialog;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Alert;
@@ -72,9 +74,27 @@ public class FXMLAnchorPaneCadastroVeiculoDialogController implements Initializa
         corDAO.setConnection(connection);
         modeloDAO.setConnection(connection);
 
-        List<Cliente> clientes = clienteDAO.listar();
-        List<Cor> cores = corDAO.listar();
-        List<Modelo> modelos = modeloDAO.listar();
+        List<Cliente> clientes = null;
+        try {
+            clientes = clienteDAO.listar();
+        } catch (DAOException e) {
+            AlertDialog.exceptionMessage(e);
+        }
+        List<Cor> cores = null;
+
+        try {
+            cores = corDAO.listar();
+        } catch (DAOException e) {
+            AlertDialog.exceptionMessage(e);
+        }
+
+        List<Modelo> modelos = null;
+
+        try {
+            modelos = modeloDAO.listar();
+        } catch (DAOException e) {
+            AlertDialog.exceptionMessage(e);
+        }
 
         //Adicionando os tipos de enum aos itens do ChoiceBox
         cbCliente.getItems().addAll(clientes);

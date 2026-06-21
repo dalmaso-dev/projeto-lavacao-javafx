@@ -2,6 +2,8 @@ package br.edu.ifsc.fln.model.dao;
 
 import br.edu.ifsc.fln.model.domain.ECategoria;
 import br.edu.ifsc.fln.model.domain.Servico;
+import br.edu.ifsc.fln.model.exceptions.DAOException;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -23,7 +25,7 @@ public class ServicoDAO {
         this.connection = connection;
     }
 
-    public boolean inserir(Servico servico) {
+    public void inserir(Servico servico) throws DAOException {
         String sql = "INSERT INTO servico(descricao, valor, categoria) VALUES(?,?,?)";
         try {
             PreparedStatement stmt = connection.prepareStatement(sql);
@@ -31,14 +33,13 @@ public class ServicoDAO {
             stmt.setDouble(2, servico.getValor());
             stmt.setString(3,servico.getCategoria().name());
             stmt.execute();
-            return true;
         } catch (SQLException ex) {
             Logger.getLogger(ServicoDAO.class.getName()).log(Level.SEVERE, null, ex);
-            return false;
+            throw new DAOException("Falha no registro ao banco de dados.", ex);
         }
     }
 
-    public boolean alterar(Servico servico) {
+    public void alterar(Servico servico) throws DAOException {
         String sql = "UPDATE servico SET descricao=?,valor=?,categoria=? WHERE id=?";
         try {
             PreparedStatement stmt = connection.prepareStatement(sql);
@@ -47,28 +48,25 @@ public class ServicoDAO {
             stmt.setString(3,servico.getCategoria().name());
             stmt.setInt(4, servico.getId());
             stmt.execute();
-
-            return true;
         } catch (SQLException ex) {
             Logger.getLogger(ServicoDAO.class.getName()).log(Level.SEVERE, null, ex);
-            return false;
+            throw new DAOException("Falha ao alterar dados do registro no banco de dados.", ex);
         }
     }
 
-    public boolean remover(Servico servico) {
+    public void remover(Servico servico) throws DAOException {
         String sql = "DELETE FROM servico WHERE id=?";
         try {
             PreparedStatement stmt = connection.prepareStatement(sql);
             stmt.setInt(1, servico.getId());
             stmt.execute();
-            return true;
         } catch (SQLException ex) {
             Logger.getLogger(ServicoDAO.class.getName()).log(Level.SEVERE, null, ex);
-            return false;
+            throw new DAOException("Falha ao excluir registro no banco de dados.", ex);
         }
     }
 
-    public List<Servico> listar() {
+    public List<Servico> listar() throws DAOException {
         String sql = "SELECT * FROM servico";
         List<Servico> retorno = new ArrayList<>();
 
@@ -88,25 +86,24 @@ public class ServicoDAO {
             }
         } catch (SQLException ex) {
             Logger.getLogger(ServicoDAO.class.getName()).log(Level.SEVERE, null, ex);
+            throw new DAOException("Falha na pesquisa no banco de dados.", ex);
         }
         return retorno;
     }
 
-    public boolean alterarPontos() {
+    public void alterarPontos() throws DAOException {
         String sql = "UPDATE parametros_de_sistema SET pontos=? WHERE chave='pontos' ";
         try {
             PreparedStatement stmt = connection.prepareStatement(sql);
             stmt.setInt(1, Servico.getPontos());
             stmt.execute();
-
-            return true;
         } catch (SQLException ex) {
             Logger.getLogger(ServicoDAO.class.getName()).log(Level.SEVERE, null, ex);
-            return false;
+            throw new DAOException("Falha ao alterar pontos no banco de dados", ex);
         }
     }
 
-    public int buscarPontos() {
+    public int buscarPontos() throws DAOException {
         String sql = "SELECT pontos FROM parametros_de_sistema WHERE chave=?";
         int pontos = 0;
         try {
@@ -119,17 +116,24 @@ public class ServicoDAO {
         }
          catch (SQLException ex) {
             Logger.getLogger(ServicoDAO.class.getName()).log(Level.SEVERE, null, ex);
+            throw new DAOException("Falha ao realizar pesquisa no banco de dodos.", ex);
         }
 
         return pontos;
     }
 
-    public Servico buscar(Servico servico) {
-        Servico retorno = buscar(servico.getId());
+    public Servico buscar(Servico servico) throws DAOException {
+        Servico retorno;
+
+        try {
+            retorno = buscar(servico.getId());
+        } catch (DAOException e) {
+            throw new DAOException(e);
+        }
         return retorno;
     }
 
-    public Servico buscar(int id) {
+    public Servico buscar(int id) throws DAOException {
         String sql = "SELECT * FROM servico WHERE id=?";
         Servico retorno = new Servico();
         try {
@@ -144,15 +148,21 @@ public class ServicoDAO {
             }
         } catch (SQLException ex) {
             Logger.getLogger(ServicoDAO.class.getName()).log(Level.SEVERE, null, ex);
+            throw new DAOException("Falha ao realizar pesquisa no banco de dados.", ex);
         }
         return retorno;
     }
 
-    public List<Servico> listarPorCategoria(String categoria) {
+    public List<Servico> listarPorCategoria(String categoria) throws DAOException {
         String sql = "SELECT * FROM servico where categoria=? or categoria='PADRAO'";
         List<Servico> retorno = new ArrayList<>();
 
-        Servico.setPontos(buscarPontos());
+        try {
+            Servico.setPontos(buscarPontos());
+        } catch (DAOException e) {
+            Logger.getLogger(ServicoDAO.class.getName()).log(Level.SEVERE, null, e);
+            throw new DAOException("Falha ao realizar pesquisa no no banco de dados.", e);
+        }
 
         try {
             PreparedStatement stmt = connection.prepareStatement(sql);
@@ -169,6 +179,7 @@ public class ServicoDAO {
             }
         } catch (SQLException ex) {
             Logger.getLogger(ServicoDAO.class.getName()).log(Level.SEVERE, null, ex);
+            throw new DAOException("Falha ao realizar pesquisa no no banco de dados.", ex);
         }
         return retorno;
     }

@@ -1,6 +1,7 @@
 package br.edu.ifsc.fln.model.dao;
 
 import br.edu.ifsc.fln.model.domain.*;
+import br.edu.ifsc.fln.model.exceptions.DAOException;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -24,7 +25,7 @@ public class VeiculoDAO {
         this.connection = connection;
     }
 
-    public void inserir(Veiculo veiculo) {
+    public void inserir(Veiculo veiculo) throws DAOException {
         String sql1 = "INSERT INTO veiculo(placa, observacoes, id_cliente, id_cor, id_modelo) VALUES(?,?,?,?,?)";
 
         try {
@@ -38,11 +39,12 @@ public class VeiculoDAO {
         }
         catch (SQLException ex) {
             Logger.getLogger(VeiculoDAO.class.getName()).log(Level.SEVERE, null, ex);
+            throw new DAOException("Falha ao realizar registro no banco de dados.", ex);
         }
     }
 
 
-    public void alterar(Veiculo veiculo) {
+    public void alterar(Veiculo veiculo) throws DAOException {
         String sql = "UPDATE veiculo SET placa=?, observacoes=?, id_cor=?,id_cliente=?, id_modelo=? WHERE id=?";
 
         try {
@@ -56,23 +58,23 @@ public class VeiculoDAO {
             stmt.execute();
         } catch (SQLException ex) {
             Logger.getLogger(VeiculoDAO.class.getName()).log(Level.SEVERE, null, ex);
+            throw new DAOException("Falha ao alterar registro no banco de dados.", ex);
         }
     }
 
-    public boolean remover(Veiculo veiculo) {
+    public void remover(Veiculo veiculo) throws DAOException {
         String sql = "DELETE FROM veiculo WHERE id=?";
         try {
             PreparedStatement stmt = connection.prepareStatement(sql);
             stmt.setInt(1, veiculo.getId());
             stmt.execute();
-            return true;
         } catch (SQLException ex) {
             Logger.getLogger(VeiculoDAO.class.getName()).log(Level.SEVERE, null, ex);
-            return false;
+            throw new DAOException("Falha ao exluir registro no banco de dados.", ex);
         }
     }
 
-    public List<Veiculo> listar() {
+    public List<Veiculo> listar() throws DAOException {
         String sql = """
         SELECT
         v.id as id_veiculo, v.placa as placa, v.observacoes as observacoes,
@@ -106,11 +108,12 @@ public class VeiculoDAO {
             }
         } catch (SQLException ex) {
             Logger.getLogger(VeiculoDAO.class.getName()).log(Level.SEVERE, null, ex);
+            throw new DAOException("Falha ao realizar pesquisa no banco de dados.", ex);
         }
         return veiculos;
     }
 
-    public List<Veiculo> listarPorCliente(Cliente cliente) {
+    public List<Veiculo> listarPorCliente(Cliente cliente) throws DAOException {
         String sql = """
         SELECT
         v.id as id_veiculo, v.placa as placa, v.observacoes as observacoes,
@@ -146,16 +149,17 @@ public class VeiculoDAO {
             }
         } catch (SQLException ex) {
             Logger.getLogger(VeiculoDAO.class.getName()).log(Level.SEVERE, null, ex);
+            throw new DAOException("Falha ao realizar pesquisa no banco de dados.", ex);
         }
         return veiculos;
     }
 
-    public Veiculo buscar(Veiculo veiculo) {
+    public Veiculo buscar(Veiculo veiculo) throws DAOException {
         Veiculo retorno = buscar(veiculo.getId());
         return retorno;
     }
 
-    public Veiculo buscar(int id) {
+    public Veiculo buscar(int id) throws DAOException {
         String sql = """
         SELECT
         v.id as id_veiculo, v.placa as placa, v.observacoes as observacoes,
@@ -189,6 +193,7 @@ public class VeiculoDAO {
             }
         } catch (SQLException ex) {
             Logger.getLogger(VeiculoDAO.class.getName()).log(Level.SEVERE, null, ex);
+            throw new DAOException("Falha ao realizar pesquisa no banco de dados.", ex);
         }
         return veiculo;
     }

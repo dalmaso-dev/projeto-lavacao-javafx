@@ -16,6 +16,8 @@ import br.edu.ifsc.fln.model.domain.ECategoria;
 import br.edu.ifsc.fln.model.domain.ETipoCombustivel;
 import br.edu.ifsc.fln.model.domain.Marca;
 import br.edu.ifsc.fln.model.domain.Modelo;
+import br.edu.ifsc.fln.model.exceptions.DAOException;
+import br.edu.ifsc.fln.utils.AlertDialog;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Alert;
@@ -68,7 +70,12 @@ public class FXMLAnchorPaneCadastroModeloDialogController implements Initializab
     public void initialize(URL url, ResourceBundle rb) {
         marcaDAO.setConnection(connection);
 
-        List<Marca> marcas = marcaDAO.listar();
+        List<Marca> marcas = null;
+        try {
+            marcas = marcaDAO.listar();
+        } catch (DAOException e) {
+            AlertDialog.exceptionMessage(e);
+        }
 
         String[] categorias = {"GRANDE", "MEDIO", "PEQUENO", "MOTO", "PADRAO"};
         String[] combustiveis = {"GASOLINA", "DIESEL", "GNV", "ETANOL", "FLEX", "OUTRO"};

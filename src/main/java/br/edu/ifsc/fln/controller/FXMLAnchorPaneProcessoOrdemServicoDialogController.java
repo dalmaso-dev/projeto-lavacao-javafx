@@ -9,14 +9,15 @@ import br.edu.ifsc.fln.model.dao.*;
 import br.edu.ifsc.fln.model.database.Database;
 import br.edu.ifsc.fln.model.database.DatabaseFactory;
 import br.edu.ifsc.fln.model.domain.*;
+import br.edu.ifsc.fln.model.exceptions.DAOException;
 import br.edu.ifsc.fln.model.exceptions.ExceptionLavacao;
+import br.edu.ifsc.fln.utils.AlertDialog;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.scene.input.DataFormat;
 import javafx.scene.input.MouseEvent;
 import javafx.stage.Stage;
 
@@ -98,6 +99,11 @@ public class FXMLAnchorPaneProcessoOrdemServicoDialogController implements Initi
         clienteDAO.setConnection(connection);
         servicoDAO.setConnection(connection);
         veiculoDAO.setConnection(connection);
+        try {
+            Servico.setPontos(servicoDAO.buscarPontos());
+        } catch (DAOException e) {
+            AlertDialog.exceptionMessage(e);
+        }
         carregarComboBoxClientes();
         carregarChoiceBoxStatus();
         tableColumnServico.setCellValueFactory(new PropertyValueFactory<>("servico"));
@@ -106,14 +112,22 @@ public class FXMLAnchorPaneProcessoOrdemServicoDialogController implements Initi
     }
 
     private void carregarComboBoxClientes() {
-        listaClientes = clienteDAO.listar();
+        try {
+            listaClientes = clienteDAO.listar();
+        } catch (DAOException e) {
+            AlertDialog.exceptionMessage(e);
+        }
         observableListClientes = FXCollections.observableArrayList(listaClientes);
         comboBoxClientes.setItems(observableListClientes);
     }
 
     private void carregarComboBoxServicos() {
         String categoria = comboBoxVeiculos.getValue().getModelo().getCategoria().name();
-        listaServicos = servicoDAO.listarPorCategoria(categoria);
+        try {
+            listaServicos = servicoDAO.listarPorCategoria(categoria);
+        } catch (DAOException e) {
+            AlertDialog.exceptionMessage(e);
+        }
         observableListServicos = FXCollections.observableArrayList(listaServicos);
         comboBoxServicos.setItems(observableListServicos);
     }
@@ -123,24 +137,6 @@ public class FXMLAnchorPaneProcessoOrdemServicoDialogController implements Initi
         choiceBoxStatus.setItems( FXCollections.observableArrayList(EStatus.values()));
         choiceBoxStatus.getSelectionModel().select(0);
     }
-//
-//    private void setFocusLostHandle() {
-//        tfDesconto.focusedProperty().addListener((ov, oldV, newV) -> {
-//        if (!newV) { // focus lost
-//                if (tfDesconto.getText() != null && !tfDesconto.getText().isEmpty()) {
-//                    //System.out.println("teste focus lost");
-//                    DecimalFormat df = new DecimalFormat("0.00");
-//                    try {
-//                        tfDesconto.setText(df.parse(tfDesconto.getText()).toString());
-//                    } catch (ParseException ex) {
-//                        Logger.getLogger(FXMLAnchorPaneProcessoOrdemServicoDialogController.class.getName()).log(Level.SEVERE, null, ex);
-//                    }
-//                    ordemServico.setDesconto(Double.valueOf(tfDesconto.getText()));
-//                    tfTotal.setText(String.valueOf(ordemServico.getTotal()));
-//                }
-//            }
-//        });
-//    }
 
     /**
      * @return the dialogStage
@@ -306,7 +302,12 @@ public class FXMLAnchorPaneProcessoOrdemServicoDialogController implements Initi
     @FXML
     private void onActionComboBoxClientes() {
         Cliente cliente = comboBoxClientes.getValue();
-        List<Veiculo> listaVeiculos = veiculoDAO.listarPorCliente(cliente);
+        List<Veiculo> listaVeiculos = null;
+        try {
+            listaVeiculos = veiculoDAO.listarPorCliente(cliente);
+        } catch (DAOException e) {
+            AlertDialog.exceptionMessage(e);
+        }
         ObservableList<Veiculo> observableListVeiculos = FXCollections.observableArrayList(listaVeiculos);
         comboBoxVeiculos.setItems(observableListVeiculos);
         comboBoxVeiculos.setDisable(false);

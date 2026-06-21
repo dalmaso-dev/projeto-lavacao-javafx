@@ -15,6 +15,8 @@ import java.util.ResourceBundle;
 
 import br.edu.ifsc.fln.model.domain.ECategoria;
 import br.edu.ifsc.fln.model.domain.Servico;
+import br.edu.ifsc.fln.model.exceptions.DAOException;
+import br.edu.ifsc.fln.utils.AlertDialog;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -90,7 +92,11 @@ public class FXMLAnchorPaneCadastroServicoController implements Initializable {
     public void carregarTableViewServico() {
         tableColumnServicoDescricao.setCellValueFactory(new PropertyValueFactory<>("descricao"));
 
-        listaServicos = servicoDAO.listar();
+        try {
+            listaServicos = servicoDAO.listar();
+        } catch (DAOException e) {
+            AlertDialog.exceptionMessage(e);
+        }
 
         observableListServicos = FXCollections.observableArrayList(listaServicos);
         tableViewServicos.setItems(observableListServicos);
@@ -120,7 +126,11 @@ public class FXMLAnchorPaneCadastroServicoController implements Initializable {
         }
         boolean btConfirmarClicked = showFXMLAnchorPaneCadastroServicoDialogController(servico);
         if (btConfirmarClicked) {
-            servicoDAO.inserir(servico);
+            try {
+                servicoDAO.inserir(servico);
+            } catch (DAOException e) {
+                AlertDialog.exceptionMessage(e);
+            }
             carregarTableViewServico();
         }
     }
@@ -131,7 +141,11 @@ public class FXMLAnchorPaneCadastroServicoController implements Initializable {
         if (servico != null) {
             boolean btConfirmarClicked = showFXMLAnchorPaneCadastroServicoDialogController(servico);
             if (btConfirmarClicked) {
-                servicoDAO.alterar(servico);
+                try {
+                    servicoDAO.alterar(servico);
+                } catch (DAOException e) {
+                    throw new RuntimeException(e);
+                }
                 carregarTableViewServico();
             }
         } else {
@@ -145,7 +159,12 @@ public class FXMLAnchorPaneCadastroServicoController implements Initializable {
     public void handleBtExcluir() throws IOException {
         Servico servico = tableViewServicos.getSelectionModel().getSelectedItem();
         if (servico != null) {
-            servicoDAO.remover(servico);
+            try {
+                servicoDAO.remover(servico);
+            }  catch (DAOException e) {
+                AlertDialog.exceptionMessage(e);
+            }
+
             carregarTableViewServico();
         } else {
             Alert alert = new Alert(Alert.AlertType.ERROR);

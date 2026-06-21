@@ -15,6 +15,8 @@ import java.util.ResourceBundle;
 
 import br.edu.ifsc.fln.model.domain.ECategoria;
 import br.edu.ifsc.fln.model.domain.Modelo;
+import br.edu.ifsc.fln.model.exceptions.DAOException;
+import br.edu.ifsc.fln.utils.AlertDialog;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -93,7 +95,11 @@ public class FXMLAnchorPaneCadastroModeloController implements Initializable {
         tableColumnModeloDescricao.setCellValueFactory(new PropertyValueFactory<>("descricao"));
 
 
-        listaModelos = modeloDAO.listar();
+        try {
+            listaModelos = modeloDAO.listar();
+        } catch (DAOException e) {
+            AlertDialog.exceptionMessage(e);
+        }
 
         observableListModelos = FXCollections.observableArrayList(listaModelos);
         tableViewModelos.setItems(observableListModelos);
@@ -124,7 +130,11 @@ public class FXMLAnchorPaneCadastroModeloController implements Initializable {
 
         boolean btConfirmarClicked = showFXMLAnchorPaneCadastroModeloDialogController(modelo);
         if (btConfirmarClicked) {
-            modeloDAO.inserir(modelo);
+            try {
+                modeloDAO.inserir(modelo);
+            } catch (DAOException e) {
+                AlertDialog.exceptionMessage(e);
+            }
             carregarTableViewModelo();
         }
     }
@@ -135,7 +145,11 @@ public class FXMLAnchorPaneCadastroModeloController implements Initializable {
         if (modelo != null) {
             boolean btConfirmarClicked = showFXMLAnchorPaneCadastroModeloDialogController(modelo);
             if (btConfirmarClicked) {
-                modeloDAO.alterar(modelo);
+                try {
+                    modeloDAO.alterar(modelo);
+                } catch (DAOException e) {
+                    AlertDialog.exceptionMessage(e);
+                }
                 carregarTableViewModelo();
             }
         } else {
@@ -149,7 +163,11 @@ public class FXMLAnchorPaneCadastroModeloController implements Initializable {
     public void handleBtExcluir() throws IOException {
         Modelo modelo = tableViewModelos.getSelectionModel().getSelectedItem();
         if (modelo != null) {
-            modeloDAO.remover(modelo);
+            try {
+                modeloDAO.remover(modelo);
+            } catch (DAOException e) {
+                AlertDialog.exceptionMessage(e);
+            }
             carregarTableViewModelo();
         } else {
             Alert alert = new Alert(Alert.AlertType.ERROR);

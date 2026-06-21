@@ -1,6 +1,7 @@
 package br.edu.ifsc.fln.model.dao;
 
 import br.edu.ifsc.fln.model.domain.*;
+import br.edu.ifsc.fln.model.exceptions.DAOException;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -23,7 +24,7 @@ public class ModeloDAO {
         this.connection = connection;
     }
 
-    public void inserir(Modelo modelo) {
+    public void inserir(Modelo modelo) throws DAOException {
         String sql1 = "INSERT INTO modelo(descricao, marca_id, categoria) VALUES(?,?,?)",
         sql2 = "INSERT INTO motor(id_modelo, potencia, tipo_combustivel) VALUES((SELECT MAX(id) from modelo),?,?)";
 
@@ -44,24 +45,25 @@ public class ModeloDAO {
             connection.commit();
         }
         catch (SQLException ex) {
-            Logger.getLogger(ModeloDAO.class.getName()).log(Level.SEVERE, null, ex);
             try {
                 connection.rollback();
             } catch (SQLException e) {
-                throw new RuntimeException(e);
+                Logger.getLogger(ModeloDAO.class.getName()).log(Level.SEVERE, null, e);
             }
+            Logger.getLogger(ModeloDAO.class.getName()).log(Level.SEVERE, null, ex);
+            throw new DAOException("Falha ao realizar registro no banco de dados.", ex);
         }
         finally {
             try {
                 connection.setAutoCommit(true);
             } catch (SQLException e) {
-                throw new RuntimeException(e);
+                Logger.getLogger(ModeloDAO.class.getName()).log(Level.SEVERE, null, e);
             }
         }
     }
 
 
-    public boolean alterar(Modelo modelo) {
+    public void alterar(Modelo modelo) throws DAOException {
         String sql1 = "UPDATE modelo SET descricao=?, marca_id=?, categoria=? WHERE id=?",
         sql2 = "UPDATE motor SET potencia=?, tipo_combustivel=? WHERE id_modelo=?";
 
@@ -80,39 +82,36 @@ public class ModeloDAO {
             stmt.setString(2,modelo.getMotor().getTipoCombustivel().name());
             stmt.setInt(3, modelo.getId());
             stmt.execute();
-
-            return true;
         } catch (SQLException ex) {
-            Logger.getLogger(ModeloDAO.class.getName()).log(Level.SEVERE, null, ex);
             try {
                 connection.rollback();
             } catch (SQLException e) {
-                throw new RuntimeException(e);
+                Logger.getLogger(ModeloDAO.class.getName()).log(Level.SEVERE, null, e);
             }
-            return false;
+            Logger.getLogger(ModeloDAO.class.getName()).log(Level.SEVERE, null, ex);
+            throw new DAOException("Falha ao alterar dados do registro no banco de dados.", ex);
         } finally {
             try {
                 connection.setAutoCommit(true);
             } catch (SQLException e) {
-                throw new RuntimeException(e);
+                Logger.getLogger(ModeloDAO.class.getName()).log(Level.SEVERE, null, e);
             }
         }
     }
 
-    public boolean remover(Modelo modelo) {
+    public void remover(Modelo modelo) throws DAOException {
         String sql = "DELETE FROM modelo WHERE id=?";
         try {
             PreparedStatement stmt = connection.prepareStatement(sql);
             stmt.setInt(1, modelo.getId());
             stmt.execute();
-            return true;
         } catch (SQLException ex) {
             Logger.getLogger(ModeloDAO.class.getName()).log(Level.SEVERE, null, ex);
-            return false;
+            throw new DAOException("Falha ao exluir registro no banco de dados.", ex);
         }
     }
 
-    public List<Modelo> listar() {
+    public List<Modelo> listar() throws DAOException {
         String sql = """
         SELECT
         mrc.id AS id_marca,
@@ -137,16 +136,17 @@ public class ModeloDAO {
             }
         } catch (SQLException ex) {
             Logger.getLogger(ModeloDAO.class.getName()).log(Level.SEVERE, null, ex);
+            throw new DAOException("Falha ao realizar pesquisa no banco de dados.", ex);
         }
         return modelos;
     }
 
-    public Modelo buscar(Modelo modelo) {
+    public Modelo buscar(Modelo modelo) throws DAOException {
         Modelo retorno = buscar(modelo.getId());
         return retorno;
     }
 
-    public Modelo buscar(int id) {
+    public Modelo buscar(int id) throws DAOException {
         String sql = """
         SELECT
         mrc.id AS id_marca,
@@ -171,6 +171,8 @@ public class ModeloDAO {
             }
         } catch (SQLException ex) {
             Logger.getLogger(ModeloDAO.class.getName()).log(Level.SEVERE, null, ex);
+            throw new DAOException("Falha ao realizar pesquisa no banco de dados.", ex);
+
         }
         return modelo;
     }

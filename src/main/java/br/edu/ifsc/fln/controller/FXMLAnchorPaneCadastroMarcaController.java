@@ -14,6 +14,8 @@ import java.util.List;
 import java.util.ResourceBundle;
 
 import br.edu.ifsc.fln.model.domain.Marca;
+import br.edu.ifsc.fln.model.exceptions.DAOException;
+import br.edu.ifsc.fln.utils.AlertDialog;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -80,7 +82,11 @@ public class FXMLAnchorPaneCadastroMarcaController implements Initializable {
     public void carregarTableViewMarca() {
         tableColumnMarcaNome.setCellValueFactory(new PropertyValueFactory<>("nome"));
 
-        listaMarcas = marcaDAO.listar();
+        try {
+            listaMarcas = marcaDAO.listar();
+        } catch (DAOException e) {
+            AlertDialog.exceptionMessage(e);
+        }
 
         observableListMarcas = FXCollections.observableArrayList(listaMarcas);
         tableViewMarcas.setItems(observableListMarcas);
@@ -102,7 +108,11 @@ public class FXMLAnchorPaneCadastroMarcaController implements Initializable {
         Marca marca = new Marca();
         boolean btConfirmarClicked = showFXMLAnchorPaneCadastroMarcaDialogController(marca);
         if (btConfirmarClicked) {
-            marcaDAO.inserir(marca);
+            try {
+                marcaDAO.inserir(marca);
+            } catch (DAOException e) {
+                AlertDialog.exceptionMessage(e);
+            }
             carregarTableViewMarca();
         }
     }
@@ -113,7 +123,11 @@ public class FXMLAnchorPaneCadastroMarcaController implements Initializable {
         if (marca != null) {
             boolean btConfirmarClicked = showFXMLAnchorPaneCadastroMarcaDialogController(marca);
             if (btConfirmarClicked) {
-                marcaDAO.alterar(marca);
+                try {
+                    marcaDAO.alterar(marca);
+                } catch (DAOException e) {
+                    AlertDialog.exceptionMessage(e);
+                }
                 carregarTableViewMarca();
             }
         } else {
@@ -127,7 +141,11 @@ public class FXMLAnchorPaneCadastroMarcaController implements Initializable {
     public void handleBtExcluir() throws IOException {
         Marca marca = tableViewMarcas.getSelectionModel().getSelectedItem();
         if (marca != null) {
-            marcaDAO.remover(marca);
+            try {
+                marcaDAO.remover(marca);
+            } catch (DAOException e) {
+                AlertDialog.exceptionMessage(e);
+            }
             carregarTableViewMarca();
         } else {
             Alert alert = new Alert(Alert.AlertType.ERROR);

@@ -1,6 +1,7 @@
 package br.edu.ifsc.fln.model.dao;
 
 import br.edu.ifsc.fln.model.domain.*;
+import br.edu.ifsc.fln.model.exceptions.DAOException;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -23,7 +24,7 @@ public class OrdemServicoDAO {
         this.connection = connection;
     }
 
-    public void inserir(OrdemServico ordemServico) {
+    public void inserir(OrdemServico ordemServico) throws DAOException {
         String sqlOS = "INSERT INTO ordem_servico(total, agenda, desconto, status, id_veiculo) VALUES(?,?,?,?,?)";
 
         try {
@@ -52,24 +53,25 @@ public class OrdemServicoDAO {
             connection.commit();
         }
         catch (SQLException ex) {
-            Logger.getLogger(OrdemServicoDAO.class.getName()).log(Level.SEVERE, null, ex);
             try {
                 connection.rollback();
             } catch (SQLException e) {
                 Logger.getLogger(OrdemServicoDAO.class.getName()).log(Level.SEVERE, null, e);
             }
+            Logger.getLogger(OrdemServicoDAO.class.getName()).log(Level.SEVERE, null, ex);
+            throw new DAOException("Falha ao realizar registro no banco de dados.", ex);
         }
         finally {
             try {
                 connection.setAutoCommit(true);
             } catch (SQLException e) {
-                throw new RuntimeException(e);
+                Logger.getLogger(OrdemServicoDAO.class.getName()).log(Level.SEVERE, null, e);
             }
         }
     }
 
 
-    public boolean alterar(OrdemServico ordemServico) {
+    public void alterar(OrdemServico ordemServico) throws DAOException {
         String sql1 = "UPDATE ordem_servico SET total=?, desconto=?, status=?, agenda=? WHERE numero=?";
         String sql2 = "DELETE FROM item_os WHERE numero_os=?";
 
@@ -93,9 +95,8 @@ public class OrdemServicoDAO {
             //inserindo os itens os
             inserirItemOS(ordemServico);
 
-
             //inserindo os pontos para cliente
-            if (ordemServico.getStatus() == EStatus.FECHADA) {
+            if (ordemServico.getStatus().name().equals("FECHADA")) {
                 // atribuindo e calculando a quantidade de pontos do cliente
                 int pontos = ordemServico.getListaItemOS().size() * Servico.getPontos();
                 ordemServico.getVeiculo().getProprietario().getPontuacao().adicionar(pontos);
@@ -110,15 +111,15 @@ public class OrdemServicoDAO {
 
             connection.commit();
 
-            return true;
         } catch (SQLException ex) {
-            Logger.getLogger(OrdemServicoDAO.class.getName()).log(Level.SEVERE, null, ex);
             try {
                 connection.rollback();
             } catch (SQLException e) {
                 Logger.getLogger(OrdemServicoDAO.class.getName()).log(Level.SEVERE, null, e);
             }
-            return false;
+
+            Logger.getLogger(OrdemServicoDAO.class.getName()).log(Level.SEVERE, null, ex);
+            throw new DAOException("Falha ao alterar registro no banco de dados.", ex);
         } finally {
             try {
                 connection.setAutoCommit(true);
@@ -128,7 +129,7 @@ public class OrdemServicoDAO {
         }
     }
 
-    public boolean remover(OrdemServico ordemServico) {
+    public void remover(OrdemServico ordemServico) throws DAOException {
         String sql1 = "DELETE FROM ordem_servico WHERE numero=?";
         String sql2 = "DELETE FROM item_os WHERE numero_os=?";
 
@@ -144,7 +145,6 @@ public class OrdemServicoDAO {
             stmt.execute();
 
             connection.commit();
-            return true;
 
         } catch (SQLException ex) {
             try {
@@ -152,8 +152,10 @@ public class OrdemServicoDAO {
             } catch (SQLException e) {
                 Logger.getLogger(OrdemServicoDAO.class.getName()).log(Level.SEVERE, null, e);
             }
+
             Logger.getLogger(OrdemServicoDAO.class.getName()).log(Level.SEVERE, null, ex);
-            return false;
+            throw new DAOException("Falha ao exluir registro no banco de dados.", ex);
+
         } finally {
             try {
                 connection.setAutoCommit(true);
@@ -163,7 +165,7 @@ public class OrdemServicoDAO {
         }
     }
 
-    public List<OrdemServico> listar() {
+    public List<OrdemServico> listar() throws DAOException {
         String sql = """
             SELECT os.numero AS numero_os,
             os.agenda as agenda_os,
@@ -208,16 +210,17 @@ public class OrdemServicoDAO {
             }
         } catch (SQLException ex) {
             Logger.getLogger(OrdemServicoDAO.class.getName()).log(Level.SEVERE, null, ex);
+            throw new DAOException("Falha ao realizar pesquisa no banco de dados.", ex);
         }
         return ordemServicos;
     }
 
-    public OrdemServico buscar(OrdemServico ordemServico) {
+    public OrdemServico buscar(OrdemServico ordemServico) throws DAOException {
         OrdemServico retorno = buscar(ordemServico.getNumero());
         return retorno;
     }
 
-    public OrdemServico buscar(long numero) {
+    public OrdemServico buscar(long numero) throws DAOException {
         String sql = """
             SELECT os.numero AS numero_os,
             os.agenda as agenda_os,
@@ -261,6 +264,7 @@ public class OrdemServicoDAO {
 
         } catch (SQLException ex) {
             Logger.getLogger(OrdemServicoDAO.class.getName()).log(Level.SEVERE, null, ex);
+            throw new DAOException("Falha ao realizar pesquisa no banco de dados.", ex);
         }
         return ordemServico;
     }
@@ -314,7 +318,7 @@ public class OrdemServicoDAO {
         return ordemServico;
     }
 
-    private OrdemServico listarItensOS(OrdemServico ordemServico) throws SQLException {
+    private OrdemServico listarItensOS(OrdemServico ordemServico) throws SQLException, DAOException {
         String sql = """
             SELECT i.valor_servico as valor_item,
             i.observacoes as  observacoes_item,
@@ -325,30 +329,35 @@ public class OrdemServicoDAO {
             FROM item_os i INNER JOIN servico s ON i.id_servico = s.id WHERE i.numero_os=?
             """;
 
-        PreparedStatement stmt = connection.prepareStatement(sql);
-        stmt.setLong(1, ordemServico.getNumero());
-        ResultSet resultado = stmt.executeQuery();
+        try {
+            PreparedStatement stmt = connection.prepareStatement(sql);
+            stmt.setLong(1, ordemServico.getNumero());
+            ResultSet resultado = stmt.executeQuery();
 
-        while (resultado.next()) {
-            ItemOS itemOS = new ItemOS();
-            Servico servico = new Servico();
+            while (resultado.next()) {
+                ItemOS itemOS = new ItemOS();
+                Servico servico = new Servico();
 
-            servico.setId(resultado.getInt("id_servico"));
-            servico.setValor(resultado.getDouble("valor_servico"));
-            servico.setCategoria(Enum.valueOf(ECategoria.class, resultado.getString("categoria_servico")));
-            servico.setDescricao(resultado.getString("descricao_servico"));
+                servico.setId(resultado.getInt("id_servico"));
+                servico.setValor(resultado.getDouble("valor_servico"));
+                servico.setCategoria(Enum.valueOf(ECategoria.class, resultado.getString("categoria_servico")));
+                servico.setDescricao(resultado.getString("descricao_servico"));
 
-            itemOS.setValorServico(resultado.getDouble("valor_item"));
-            itemOS.setObservacoes(resultado.getString("observacoes_item"));
-            itemOS.setServico(servico);
+                itemOS.setValorServico(resultado.getDouble("valor_item"));
+                itemOS.setObservacoes(resultado.getString("observacoes_item"));
+                itemOS.setServico(servico);
 
-            ordemServico.getListaItemOS().add(itemOS);
+                ordemServico.getListaItemOS().add(itemOS);
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(ServicoDAO.class.getName()).log(Level.SEVERE, null, ex);
+            throw new DAOException("Falha ao realizar pesquisa no banco de dados.", ex);
         }
 
         return ordemServico;
     }
 
-    private void inserirItemOS(OrdemServico ordemServico) {
+    private void inserirItemOS(OrdemServico ordemServico) throws DAOException {
         String sqlItemOS = "INSERT INTO item_os(numero_os, id_servico, valor_servico, observacoes) VALUES(?,?,?,?)";
 
         try {
@@ -362,6 +371,7 @@ public class OrdemServicoDAO {
             }
         } catch (SQLException ex) {
             Logger.getLogger(OrdemServicoDAO.class.getName()).log(Level.SEVERE, null, ex);
+            throw new DAOException("Falha ao realizar registro no banco de dados.", ex);
         }
     }
 }

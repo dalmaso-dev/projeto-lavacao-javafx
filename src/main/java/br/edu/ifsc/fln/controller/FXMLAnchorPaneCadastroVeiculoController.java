@@ -14,6 +14,8 @@ import java.util.List;
 import java.util.ResourceBundle;
 
 import br.edu.ifsc.fln.model.domain.*;
+import br.edu.ifsc.fln.model.exceptions.DAOException;
+import br.edu.ifsc.fln.utils.AlertDialog;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -124,7 +126,11 @@ public class FXMLAnchorPaneCadastroVeiculoController implements Initializable {
             return new SimpleStringProperty(nomeMarca);
         });
 
-        listaVeiculos = veiculoDAO.listar();
+        try {
+            listaVeiculos = veiculoDAO.listar();
+        } catch (DAOException e) {
+            AlertDialog.exceptionMessage(e);
+        }
 
         observableListVeiculos = FXCollections.observableArrayList(listaVeiculos);
         tableViewVeiculos.setItems(observableListVeiculos);
@@ -162,7 +168,11 @@ public class FXMLAnchorPaneCadastroVeiculoController implements Initializable {
 
         boolean btConfirmarClicked = showFXMLAnchorPaneCadastroVeiculoDialogController(veiculo);
         if (btConfirmarClicked) {
-            veiculoDAO.inserir(veiculo);
+            try {
+                veiculoDAO.inserir(veiculo);
+            } catch (DAOException e) {
+                AlertDialog.exceptionMessage(e);
+            }
             carregarTableViewVeiculo();
         }
     }
@@ -173,7 +183,11 @@ public class FXMLAnchorPaneCadastroVeiculoController implements Initializable {
         if (veiculo != null) {
             boolean btConfirmarClicked = showFXMLAnchorPaneCadastroVeiculoDialogController(veiculo);
             if (btConfirmarClicked) {
-                veiculoDAO.alterar(veiculo);
+                try {
+                    veiculoDAO.alterar(veiculo);
+                } catch (DAOException e) {
+                    AlertDialog.exceptionMessage(e);
+                }
                 carregarTableViewVeiculo();
             }
         } else {
@@ -187,7 +201,11 @@ public class FXMLAnchorPaneCadastroVeiculoController implements Initializable {
     public void handleBtExcluir() throws IOException {
         Veiculo veiculo = tableViewVeiculos.getSelectionModel().getSelectedItem();
         if (veiculo != null) {
-            veiculoDAO.remover(veiculo);
+            try {
+                veiculoDAO.remover(veiculo);
+            } catch (DAOException e) {
+                AlertDialog.exceptionMessage(e);
+            }
             carregarTableViewVeiculo();
         } else {
             Alert alert = new Alert(Alert.AlertType.ERROR);

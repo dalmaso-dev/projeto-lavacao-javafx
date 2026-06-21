@@ -4,6 +4,7 @@
  */
 package br.edu.ifsc.fln.controller;
 
+import java.io.IOException;
 import java.net.URL;
 import java.sql.Connection;
 import java.util.ResourceBundle;
@@ -12,6 +13,8 @@ import br.edu.ifsc.fln.model.dao.ServicoDAO;
 import br.edu.ifsc.fln.model.database.Database;
 import br.edu.ifsc.fln.model.database.DatabaseFactory;
 import br.edu.ifsc.fln.model.domain.Servico;
+import br.edu.ifsc.fln.model.exceptions.DAOException;
+import br.edu.ifsc.fln.utils.AlertDialog;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Alert;
@@ -41,16 +44,25 @@ public class FXMLAnchorPaneAjusteServicoPontosController implements Initializabl
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         servicoDAO.setConnection(connection);
-        int pontos = servicoDAO.buscarPontos();
+        int pontos = 0;
+        try {
+            pontos = servicoDAO.buscarPontos();
+        } catch (DAOException e) {
+            AlertDialog.exceptionMessage(e);
+        }
 
         tfPontos.setText(String.valueOf(pontos));
     }
 
     @FXML
-    public void handleBtAlterar() {
+    public void handleBtAlterar () throws IOException {
         if (validarEntradaDeDados()) {
             Servico.setPontos(Integer.parseInt(tfPontos.getText()));
-            servicoDAO.alterarPontos();
+            try {
+                servicoDAO.alterarPontos();
+            } catch (DAOException e) {
+                AlertDialog.exceptionMessage(e);
+            }
 
             Alert alert = new Alert(Alert.AlertType.INFORMATION);
             alert.setTitle("Status de atualização de pontos de serviço.");
@@ -61,7 +73,7 @@ public class FXMLAnchorPaneAjusteServicoPontosController implements Initializabl
     }
 
     //método para validar a entrada de dados
-    private boolean validarEntradaDeDados() {
+    private boolean validarEntradaDeDados() throws IOException {
         String errorMessage = "";
         if ((this.tfPontos.getText().isEmpty()) || (Integer.parseInt(this.tfPontos.getText())) < 0) {
             errorMessage += "Descrição inválida.\n";

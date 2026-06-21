@@ -3,6 +3,7 @@ package br.edu.ifsc.fln.model.dao;
 import br.edu.ifsc.fln.model.domain.Cliente;
 import br.edu.ifsc.fln.model.domain.PessoaFisica;
 import br.edu.ifsc.fln.model.domain.PessoaJuridica;
+import br.edu.ifsc.fln.model.exceptions.DAOException;
 
 import java.sql.*;
 import java.time.LocalDate;
@@ -29,7 +30,7 @@ public class ClienteDAO {
         this.connection = connection;
     }
 
-    public boolean inserir(Cliente cliente) {
+    public void inserir(Cliente cliente) throws DAOException {
         String sqlCliente = "INSERT INTO cliente(nome, celular, email, data_cadastro) VALUES(?, ?, ?, ?)";
 
         String sqlPontuacao = "INSERT INTO pontuacao(id_cliente, quantidade) VALUES ((SELECT max(id) FROM cliente), ?)";
@@ -66,28 +67,28 @@ public class ClienteDAO {
                 stmt.execute();
             }
             connection.commit();
-            return true;
         } catch (SQLException ex) {
-            Logger.getLogger(ClienteDAO.class.getName()).log(Level.SEVERE, null, ex);
 
             try {
                 connection.rollback();
                 System.out.println("rollback executado com sucesso!!!");
             } catch (SQLException e) {
+                Logger.getLogger(ClienteDAO.class.getName()).log(Level.SEVERE, null, e);
                 System.out.println("falha na operação roolback...");
-                throw new RuntimeException(e);
             }
-            return false;
+
+            Logger.getLogger(ClienteDAO.class.getName()).log(Level.SEVERE, null, ex);
+            throw new DAOException("Falha ao realizar registro no banco de dados.", ex);
         } finally {
             try {
                 connection.setAutoCommit(true);
             } catch (SQLException e) {
-                throw new RuntimeException(e);
+                Logger.getLogger(ClienteDAO.class.getName()).log(Level.SEVERE, null, e);
             }
         }
     }
 
-    public boolean alterar(Cliente cliente) {
+    public void alterar(Cliente cliente) throws DAOException {
         String sqlCliente =     "UPDATE cliente SET nome=?, celular=?, email=? WHERE id=?";
         String sqlPontuacao =   "UPDATE pontuacao SET quantidade=? WHERE id_cliente=?";
         String sqlPF =          "UPDATE pessoa_fisica SET cpf=?, data_nascimento=? WHERE id_cliente = ?";
@@ -124,42 +125,40 @@ public class ClienteDAO {
                 stmt.setInt(3, cliente.getId());
                 stmt.execute();
             }
-            return true;
         } catch (SQLException ex) {
-            Logger.getLogger(ClienteDAO.class.getName()).log(Level.SEVERE, null, ex);
-
             try {
                 connection.rollback();
                 System.out.println("rollback executado com sucesso!!!");
             } catch (SQLException e) {
                 System.out.println("falha na operação roolback...");
-                throw new RuntimeException(e);
+                Logger.getLogger(ClienteDAO.class.getName()).log(Level.SEVERE, null, e);
             }
-            return false;
+
+            Logger.getLogger(ClienteDAO.class.getName()).log(Level.SEVERE, null, ex);
+            throw new DAOException("Falha ao alterar registro no banco de dados.", ex);
         } finally {
             try {
                 connection.setAutoCommit(true);
             } catch (SQLException e) {
-                throw new RuntimeException(e);
+                Logger.getLogger(ClienteDAO.class.getName()).log(Level.SEVERE, null, e);
             }
         }
     }
 
-    public boolean remover(Cliente cliente) {
+    public void remover(Cliente cliente) throws DAOException {
         String sql = "DELETE FROM cliente WHERE id=?";
 
         try {
             PreparedStatement stmt = connection.prepareStatement(sql);
             stmt.setInt(1, cliente.getId());
             stmt.execute();
-            return true;
         } catch (SQLException ex) {
             Logger.getLogger(ClienteDAO.class.getName()).log(Level.SEVERE, null, ex);
-            return false;
+            throw new DAOException("Falha ao exluir registro no banco de dados.", ex);
         }
     }
 
-    public List<Cliente> listar() {
+    public List<Cliente> listar() throws DAOException {
         String sql = """
             SELECT
             c.id as id,
@@ -187,15 +186,16 @@ public class ClienteDAO {
             }
         } catch (SQLException ex) {
             Logger.getLogger(ClienteDAO.class.getName()).log(Level.SEVERE, null, ex);
+            throw new DAOException("Falha ao realizar pesquisa no banco de dados.", ex);
         }
         return retorno;
     }
 
-    public Cliente buscar(Cliente cliente) {
+    public Cliente buscar(Cliente cliente) throws DAOException {
         return buscar(cliente.getId());
     }
 
-    public Cliente buscar(int id) {
+    public Cliente buscar(int id) throws DAOException {
         String sql = """
             SELECT
             c.id as id,
@@ -224,14 +224,13 @@ public class ClienteDAO {
             }
         } catch (SQLException ex) {
             Logger.getLogger(ClienteDAO.class.getName()).log(Level.SEVERE, null, ex);
+            throw new DAOException("Falha ao realizar pesquisa no banco de dados.", ex);
         }
         return retorno;
     }
 
     private Cliente populateVO(ResultSet rs) throws SQLException {
-        Cliente cliente = null;
-
-        Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
+        Cliente cliente;
 
         if (rs.getString("cpf") == null) {
             //é um cliente do tipo pessoa jurídica
@@ -250,6 +249,7 @@ public class ClienteDAO {
         cliente.setCelular(rs.getString("celular"));
         cliente.setEmail(rs.getString("email"));
         cliente.setDataCadastro(rs.getObject("data_cadastro", LocalDate.class));
+        cliente.getPontuacao().adicionar(rs.getInt("saldo_pontuacao"));
 
         return cliente;
     }
