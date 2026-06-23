@@ -8,10 +8,10 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 public class OrdemServicoDAO {
     private Connection connection;
@@ -373,5 +373,51 @@ public class OrdemServicoDAO {
             Logger.getLogger(OrdemServicoDAO.class.getName()).log(Level.SEVERE, null, ex);
             throw new DAOException("Falha ao realizar registro no banco de dados.", ex);
         }
+    }
+
+    public Map<Integer, ArrayList> listarQuantidadeOrdensServicosPorMes() {
+        String sql = "select count(numero) as count, extract(year from agenda) as ano, "
+                + " extract(month from agenda) as mes from ordem_servico group by ano, "
+                + "mes order by ano, mes";
+        Map<Integer, ArrayList> retorno = new HashMap();
+
+        try {
+            PreparedStatement stmt = connection.prepareStatement(sql);
+            ResultSet resultado = stmt.executeQuery();
+
+            while (resultado.next()) {
+                ArrayList linha = new ArrayList();
+                if (!retorno.containsKey(resultado.getInt("ano")))
+                {
+                    linha.add(resultado.getInt("mes"));
+                    linha.add(resultado.getInt("count"));
+                    retorno.put(resultado.getInt("ano"), linha);
+                }else{
+                    ArrayList linhaNova = retorno.get(resultado.getInt("ano"));
+                    linhaNova.add(resultado.getInt("mes"));
+                    linhaNova.add(resultado.getInt("count"));
+                }
+            }
+            if (retorno.size() > 0) {
+                retorno = ordenar(retorno);
+            }
+            return retorno;
+        } catch (SQLException ex) {
+            Logger.getLogger(OrdemServicoDAO.class.getName()).log(Level.SEVERE, null, ex);
+        } finally {
+
+        }
+        return retorno;
+    }
+
+    private Map<Integer, ArrayList> ordenar(Map<Integer, ArrayList> vendas) {
+        LinkedHashMap<Integer, ArrayList> orderedMap = vendas.entrySet()
+                .stream()
+                .sorted(Map.Entry.comparingByKey())
+                .collect(Collectors.toMap(Map.Entry::getKey,
+                        Map.Entry::getValue, //
+                        (key, content) -> content, //
+                        LinkedHashMap::new));
+        return orderedMap;
     }
 }

@@ -33,12 +33,12 @@
           </Menu>
           <Menu mnemonicParsing="false" text="Gráficos">
             <items>
-              <MenuItem fx:id="menuItemGraficoVendasPorMes" mnemonicParsing="false" onAction="#handleMenuItemGraficosVendasPorMes" text="Vendas por  Mês" />
+              <MenuItem fx:id="menuItemGraficoOrdensServicoPorMes" mnemonicParsing="false" onAction="#handleMenuItemGraficosOrdensServicoPorMes" text="Ordens de serviço por  Mês" />
             </items>
           </Menu>
             <Menu mnemonicParsing="false" text="Relatórios">
               <items>
-                <MenuItem fx:id="menuItemRelatorioEstoque" mnemonicParsing="false" onAction="#handleMenuItemRelatorioEstoqueProdutos" text="Estoque" />
+                <MenuItem fx:id="menuItemRelatorioServicos" mnemonicParsing="false" onAction="#handleMenuItemRelatorioServicos" text="Serviços" />
               </items>
             </Menu>
             <Menu mnemonicParsing="false" text="Ajustes">
