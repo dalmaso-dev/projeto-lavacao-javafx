@@ -12,6 +12,7 @@ import br.edu.ifsc.fln.model.domain.*;
 import br.edu.ifsc.fln.model.exceptions.DAOException;
 import br.edu.ifsc.fln.model.exceptions.ExceptionLavacao;
 import br.edu.ifsc.fln.utils.AlertDialog;
+import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -20,6 +21,7 @@ import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.input.MouseEvent;
 import javafx.stage.Stage;
+import javafx.util.StringConverter;
 
 import java.net.URL;
 import java.sql.Connection;
@@ -43,7 +45,7 @@ public class FXMLAnchorPaneProcessoOrdemServicoDialogController implements Initi
     @FXML
     private TableView<ItemOS> tableViewItensOS;
     @FXML
-    private TableColumn<ItemOS, Servico> tableColumnServico;
+    private TableColumn<ItemOS, String> tableColumnServico;
     @FXML
     private TableColumn<ItemOS, Integer> tableColumnObservacao;
     @FXML
@@ -104,9 +106,66 @@ public class FXMLAnchorPaneProcessoOrdemServicoDialogController implements Initi
         } catch (DAOException e) {
             AlertDialog.exceptionMessage(e);
         }
+
+        comboBoxClientes.setConverter(new StringConverter<Cliente>() {
+            @Override
+            public String toString(Cliente cliente) {
+                // Como o objeto deve aparecer na tela
+                if (cliente == null) {
+                    return "";
+                }
+                String documento = cliente instanceof PessoaFisica?((PessoaFisica) cliente).getCpf(): ((PessoaJuridica) cliente).getCnpj();
+                return cliente.getNome() + " - " + documento + " - Celular: " + cliente.getCelular() + " - Pontos: " + cliente.getPontuacao().saldo();
+            }
+
+            @Override
+            public Cliente fromString(String string) {
+                // Só é necessário se o seu ComboBox for editável (o usuário pode digitar nele)
+                // Caso contrário, pode retornar null
+                return null;
+            }
+        });
+        comboBoxVeiculos.setConverter(new StringConverter<Veiculo>() {
+            @Override
+            public String toString(Veiculo veiculo) {
+                // Como o objeto deve aparecer na tela
+                if (veiculo == null) {
+                    return "";
+                }
+                return veiculo.getPlaca() + " - " + veiculo.getModelo().getDescricao() + " - " + veiculo.getCor().getNome() + " - obs: " + veiculo.getObservacoes();
+            }
+
+            @Override
+            public Veiculo fromString(String string) {
+                // Só é necessário se o seu ComboBox for editável (o usuário pode digitar nele)
+                // Caso contrário, pode retornar null
+                return null;
+            }
+        });
+        comboBoxServicos.setConverter(new StringConverter<Servico>() {
+            @Override
+            public String toString(Servico servico) {
+                // Como o objeto deve aparecer na tela
+                if (servico == null) {
+                    return "";
+                }
+                return servico.getDescricao() + " - R$" + servico.getValor();
+            }
+
+            @Override
+            public Servico fromString(String string) {
+                // Só é necessário se o seu ComboBox for editável (o usuário pode digitar nele)
+                // Caso contrário, pode retornar null
+                return null;
+            }
+        });
         carregarComboBoxClientes();
         carregarChoiceBoxStatus();
-        tableColumnServico.setCellValueFactory(new PropertyValueFactory<>("servico"));
+        tableColumnServico.setCellValueFactory(cellData -> {
+            ItemOS item = cellData.getValue();
+
+            return new SimpleStringProperty(item.getServico().getDescricao());
+        });
         tableColumnObservacao.setCellValueFactory(new PropertyValueFactory<>("observacoes"));
         tableColumnValor.setCellValueFactory(new PropertyValueFactory<>("valorServico"));
     }
@@ -182,13 +241,6 @@ public class FXMLAnchorPaneProcessoOrdemServicoDialogController implements Initi
             tfTotal.setText(String.format("%.2f", this.ordemServico.getTotal()));
             tfDesconto.setText(String.format("%.2f", this.ordemServico.getDesconto()));
             choiceBoxStatus.getSelectionModel().select(this.ordemServico.getStatus());
-
-            comboBoxClientes.setEditable(false);
-            comboBoxVeiculos.setEditable(false);
-
-            if (ordemServico.getStatus().name().equals("FECHADA")) {
-                choiceBoxStatus.setDisable(true);
-            }
         }
     }
 
@@ -206,6 +258,12 @@ public class FXMLAnchorPaneProcessoOrdemServicoDialogController implements Initi
 
             for (ItemOS item : ordemServico.getListaItemOS()) {
                 if (item.getServico().getDescricao().equals(servico.getDescricao())) {
+                    Alert alert = new Alert(Alert.AlertType.ERROR);
+                    alert.setTitle("Erro");
+                    alert.setHeaderText(null);
+                    alert.setContentText("Este serviço já está inserido na lista de itens da OS.");
+                    alert.showAndWait();
+
                     throw new ExceptionLavacao("Este serviço já está inserido na lista de itens da OS.");
                 }
             }
@@ -221,6 +279,8 @@ public class FXMLAnchorPaneProcessoOrdemServicoDialogController implements Initi
             }
 
             tfTotal.setText(String.format("%.2f", ordemServico.getTotal()));
+            textAreaObservacoes.setText("");
+            comboBoxServicos.setValue(null);
         }
     }
 

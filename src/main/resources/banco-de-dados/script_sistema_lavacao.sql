@@ -65,7 +65,7 @@ CREATE TABLE cliente (
 
 CREATE TABLE pessoa_fisica (
     id_cliente INT NOT NULL,
-    cpf CHAR(14) NOT NULL unique,
+    cpf CHAR(11) NOT NULL unique,
     data_nascimento date,
     CONSTRAINT pk_pessoa_fisica
         PRIMARY KEY(id_cliente),
@@ -158,7 +158,7 @@ insert into cliente(nome, celular, email, data_cadastro) values
 
 insert into pessoa_fisica(id_cliente, cpf, data_nascimento) values
     ((select max(id) from cliente),
-     '090.909.090-90',
+     '09090909090',
      '2005-08-24');
 
 insert into pontuacao(id_cliente, quantidade) values

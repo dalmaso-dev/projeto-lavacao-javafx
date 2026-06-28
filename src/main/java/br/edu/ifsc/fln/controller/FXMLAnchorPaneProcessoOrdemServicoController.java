@@ -238,8 +238,9 @@ public class FXMLAnchorPaneProcessoOrdemServicoController implements Initializab
     }
 
     @FXML
-    private void handleButtonDetalhes(ActionEvent event) {
+    private void handleButtonDetalhes(ActionEvent event) throws IOException {
         if (tableView.getSelectionModel().getSelectedItem() != null) {
+            OrdemServico ordemServico = tableView.getSelectionModel().getSelectedItem();
             FXMLLoader loader = new FXMLLoader();
             loader.setLocation(FXMLAnchorPaneProcessoOrdemServicoDetailsController.class.getResource(
                     "/view/FXMLAnchorPaneProcessoOrdemServicoDetails.fxml"));
@@ -274,7 +275,6 @@ public class FXMLAnchorPaneProcessoOrdemServicoController implements Initializab
         Scene scene = new Scene(page);
         dialogStage.setScene(scene);
 
-        //Setando o venda ao controller
         FXMLAnchorPaneProcessoOrdemServicoDialogController controller = loader.getController();
         controller.setDialogStage(dialogStage);
         controller.setOrdemServico(ordemServico);
