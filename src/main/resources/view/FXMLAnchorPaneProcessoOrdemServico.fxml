@@ -53,7 +53,7 @@
                         <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
                      </rowConstraints>
                      <children>
-                        <Label text="ID:" GridPane.halignment="RIGHT">
+                        <Label text="Número:" GridPane.halignment="RIGHT">
                            <GridPane.margin>
                               <Insets right="5.0" />
                            </GridPane.margin>
@@ -63,7 +63,7 @@
                               <Insets right="5.0" />
                            </GridPane.margin>
                         </Label>
-                        <Label text="Total:" GridPane.halignment="RIGHT" GridPane.rowIndex="2">
+                        <Label text="Total:" GridPane.halignment="RIGHT" GridPane.rowIndex="6">
                            <GridPane.margin>
                               <Insets right="5.0" />
                            </GridPane.margin>
@@ -75,22 +75,22 @@
                         </Label>
                         <Label fx:id="labelOrdemServicoNumero" prefHeight="18.0" prefWidth="256.0" GridPane.columnIndex="1" />
                         <Label fx:id="labelOrdemServicoAgenda" prefHeight="18.0" prefWidth="257.0" GridPane.columnIndex="1" GridPane.rowIndex="1" />
-                        <Label fx:id="labelOrdemServicoTotal" prefHeight="18.0" prefWidth="255.0" GridPane.columnIndex="1" GridPane.rowIndex="2" />
-                        <Label alignment="CENTER_RIGHT" prefHeight="18.0" prefWidth="92.0" text="Cliente:" GridPane.rowIndex="6">
+                        <Label fx:id="labelOrdemServicoTotal" prefHeight="18.0" prefWidth="255.0" GridPane.columnIndex="1" GridPane.rowIndex="6" />
+                        <Label alignment="CENTER_RIGHT" prefHeight="18.0" prefWidth="92.0" text="Cliente:" GridPane.rowIndex="3">
                            <GridPane.margin>
                               <Insets right="5.0" />
                            </GridPane.margin>
                         </Label>
-                        <Label fx:id="labelOrdemServicoClienteNome" prefHeight="18.0" prefWidth="250.0" GridPane.columnIndex="1" GridPane.rowIndex="6" />
+                        <Label fx:id="labelOrdemServicoClienteNome" prefHeight="18.0" prefWidth="250.0" GridPane.columnIndex="1" GridPane.rowIndex="3" />
                         <Label fx:id="labelOrdemServicoSituacao" prefHeight="18.0" prefWidth="250.0" GridPane.columnIndex="1" GridPane.rowIndex="4" />
-                        <Label alignment="CENTER_RIGHT" prefHeight="18.0" prefWidth="74.0" text="Desconto:" GridPane.rowIndex="3">
+                        <Label alignment="CENTER_RIGHT" prefHeight="18.0" prefWidth="74.0" text="Desconto:" GridPane.rowIndex="5">
                            <GridPane.margin>
                               <Insets right="5.0" />
                            </GridPane.margin>
                         </Label>
-                        <Label fx:id="labelOrdemServicoDesconto" prefHeight="18.0" prefWidth="250.0" GridPane.columnIndex="1" GridPane.rowIndex="3" />
-                        <Label alignment="CENTER_RIGHT" prefHeight="18.0" prefWidth="75.0" text="Placa:" GridPane.rowIndex="5" />
-                        <Label fx:id="labelOrdemServicoVeiculoPlaca" prefHeight="18.0" prefWidth="250.0" GridPane.columnIndex="1" GridPane.rowIndex="5" />
+                        <Label fx:id="labelOrdemServicoDesconto" prefHeight="18.0" prefWidth="250.0" GridPane.columnIndex="1" GridPane.rowIndex="5" />
+                        <Label alignment="CENTER_RIGHT" prefHeight="18.0" prefWidth="75.0" text="Placa:" GridPane.rowIndex="2" />
+                        <Label fx:id="labelOrdemServicoVeiculoPlaca" prefHeight="18.0" prefWidth="250.0" GridPane.columnIndex="1" GridPane.rowIndex="2" />
                      </children>
                   </GridPane>
                   <Group layoutX="64.0" layoutY="285.0" AnchorPane.bottomAnchor="20.0" AnchorPane.rightAnchor="20.0">
@@ -98,6 +98,7 @@
                         <Button fx:id="buttonInserir" mnemonicParsing="false" onAction="#handleButtonInserir" prefHeight="25.0" prefWidth="64.0" text="Inserir" />
                         <Button fx:id="buttonAlterar" layoutX="71.0" mnemonicParsing="false" onAction="#handleButtonAlterar" prefHeight="25.0" prefWidth="64.0" text="Alterar" />
                         <Button fx:id="buttonRemover" layoutX="141.0" mnemonicParsing="false" onAction="#handleButtonRemover" text="Remover" />
+                        <Button fx:id="buttonDetalhes" layoutX="-72.0" mnemonicParsing="false" onAction="#handleButtonDetalhes" prefHeight="25.0" prefWidth="64.0" text="Detalhes" textAlignment="CENTER" />
                      </children>
                   </Group>
                </children>

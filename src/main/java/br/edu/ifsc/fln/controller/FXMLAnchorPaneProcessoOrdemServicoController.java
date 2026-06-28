@@ -8,11 +8,14 @@ package br.edu.ifsc.fln.controller;
 import br.edu.ifsc.fln.model.dao.OrdemServicoDAO;
 import br.edu.ifsc.fln.model.database.Database;
 import br.edu.ifsc.fln.model.database.DatabaseFactory;
+import br.edu.ifsc.fln.model.domain.EStatus;
 import br.edu.ifsc.fln.model.domain.ItemOS;
 import br.edu.ifsc.fln.model.domain.OrdemServico;
+import br.edu.ifsc.fln.model.domain.Veiculo;
 import br.edu.ifsc.fln.model.exceptions.DAOException;
 import br.edu.ifsc.fln.model.exceptions.ExceptionLavacao;
 import br.edu.ifsc.fln.utils.AlertDialog;
+import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -50,6 +53,9 @@ public class FXMLAnchorPaneProcessoOrdemServicoController implements Initializab
 
     @FXML
     private Button buttonRemover;
+
+    @FXML
+    private Button ButtonDetalhes;
 
     @FXML
     private Label labelOrdemServicoVeiculoPlaca;
@@ -128,6 +134,13 @@ public class FXMLAnchorPaneProcessoOrdemServicoController implements Initializab
         tableColumnOrdemServicoAgenda.setCellValueFactory(new PropertyValueFactory<>("agenda"));
         tableColumnOrdemServicoCliente.setCellValueFactory(new PropertyValueFactory<>("veiculo"));
 
+        tableColumnOrdemServicoCliente.setCellValueFactory(cellData -> {
+            OrdemServico veiculo = cellData.getValue();
+            String nomeCliente = veiculo.getVeiculo().getProprietario().getNome();
+
+            return new SimpleStringProperty(nomeCliente);
+        });
+
         try {
             listaOrdensServicos = ordemServicoDAO.listar();
         } catch (DAOException e) {
@@ -183,7 +196,7 @@ public class FXMLAnchorPaneProcessoOrdemServicoController implements Initializab
     @FXML
     private void handleButtonAlterar(ActionEvent event) throws IOException {
         OrdemServico ordemServico = tableView.getSelectionModel().getSelectedItem();
-        if (ordemServico != null) {
+        if (ordemServico != null && ordemServico.getStatus() != EStatus.FECHADA) {
             boolean buttonConfirmarClicked = showFXMLAnchorPaneProcessoOrdemServicoDialog(ordemServico);
             if (buttonConfirmarClicked) {
                 try {
@@ -193,11 +206,15 @@ public class FXMLAnchorPaneProcessoOrdemServicoController implements Initializab
                 }
                 carregarTableView();
             }
+        } else if (ordemServico != null && ordemServico.getStatus() == EStatus.FECHADA){
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setContentText("Esta ordem de serviço já está fechada,\nportando não há como alterá-la.\nSomente é possível ver seus detalhes.");
+            alert.show();
         } else {
             Alert alert = new Alert(Alert.AlertType.ERROR);
             alert.setContentText("Por favor, escolha uma Ordem de Serviço na Tabela.");
             alert.show();
-        }        
+        }
     }
 
     @FXML
@@ -213,6 +230,31 @@ public class FXMLAnchorPaneProcessoOrdemServicoController implements Initializab
                 }
                 carregarTableView();
             }
+        } else {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setHeaderText("Por favor, escolha uma ordem de serviço na tabela!");
+            alert.show();
+        }
+    }
+
+    @FXML
+    private void handleButtonDetalhes(ActionEvent event) {
+        if (tableView.getSelectionModel().getSelectedItem() != null) {
+            FXMLLoader loader = new FXMLLoader();
+            loader.setLocation(FXMLAnchorPaneProcessoOrdemServicoDetailsController.class.getResource(
+                    "/view/FXMLAnchorPaneProcessoOrdemServicoDetails.fxml"));
+            AnchorPane page = (AnchorPane) loader.load();
+
+            Stage dialogStage = new Stage();
+            dialogStage.setTitle("Detalhes de ordem de serviço");
+            Scene scene = new Scene(page);
+            dialogStage.setScene(scene);
+
+            FXMLAnchorPaneProcessoOrdemServicoDetailsController controller = loader.getController();
+            controller.setDialogStage(dialogStage);
+            controller.setOrdemServico(ordemServico);
+
+            dialogStage.showAndWait();
         } else {
             Alert alert = new Alert(Alert.AlertType.ERROR);
             alert.setHeaderText("Por favor, escolha uma ordem de serviço na tabela!");

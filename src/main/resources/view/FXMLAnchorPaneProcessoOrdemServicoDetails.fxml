@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.RowConstraints?>
+
+<AnchorPane id="AnchorPane" prefHeight="493.0" prefWidth="663.0" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="br.edu.ifsc.fln.controller.FXMLAnchorPaneProcessoOrdemServicoDetailsController">
+    <children>
+        <GridPane layoutX="91.0" layoutY="41.0" prefHeight="426.0" prefWidth="509.0">
+            <columnConstraints>
+                <ColumnConstraints hgrow="SOMETIMES" maxWidth="147.0" minWidth="10.0" prefWidth="72.80003662109374" />
+                <ColumnConstraints hgrow="SOMETIMES" maxWidth="433.6" minWidth="10.0" prefWidth="423.9999633789063" />
+            </columnConstraints>
+            <rowConstraints>
+                <RowConstraints maxHeight="38.0" minHeight="0.0" prefHeight="36.999993896484376" vgrow="SOMETIMES" />
+                <RowConstraints maxHeight="38.0" minHeight="10.0" prefHeight="35.999993896484376" vgrow="SOMETIMES" />
+                <RowConstraints maxHeight="86.0" minHeight="5.600006103515625" prefHeight="35.60000610351564" vgrow="SOMETIMES" />
+                <RowConstraints maxHeight="189.19997558593747" minHeight="10.0" prefHeight="185.99999389648434" vgrow="SOMETIMES" />
+                <RowConstraints maxHeight="49.600006103515625" minHeight="10.0" prefHeight="36.19999999999999" vgrow="SOMETIMES" />
+                <RowConstraints maxHeight="39.59996337890624" minHeight="10.0" prefHeight="39.59996337890624" vgrow="SOMETIMES" />
+                <RowConstraints maxHeight="36.800048828125" minHeight="10.0" prefHeight="36.800048828125" vgrow="SOMETIMES" />
+            </rowConstraints>
+            <children>
+                <Label text="Cliente:" GridPane.halignment="RIGHT">
+                    <GridPane.margin>
+                        <Insets right="5.0" />
+                    </GridPane.margin>
+                </Label>
+                <Label text="Agenda:" GridPane.halignment="RIGHT" GridPane.rowIndex="2">
+                    <GridPane.margin>
+                        <Insets right="5.0" />
+                    </GridPane.margin>
+                </Label>
+                <Label text="Items:" GridPane.halignment="RIGHT" GridPane.rowIndex="3">
+                    <GridPane.margin>
+                        <Insets right="5.0" />
+                    </GridPane.margin>
+                </Label>
+                <Label text="Total:" GridPane.halignment="RIGHT" GridPane.rowIndex="5">
+                    <GridPane.margin>
+                        <Insets right="5.0" />
+                    </GridPane.margin>
+                </Label>
+                <TableView fx:id="tableViewItensOS" prefHeight="132.0" prefWidth="340.0" GridPane.columnIndex="1" GridPane.rowIndex="3">
+                    <columns>
+                        <TableColumn fx:id="tableColumnServico" prefWidth="133.6000518798828" text="Serviço" />
+                        <TableColumn fx:id="tableColumnObservacao" prefWidth="206.4000244140625" text="observação" />
+                        <TableColumn fx:id="tableColumnValor" prefWidth="88.7999267578125" text="Valor" />
+                    </columns>
+                    <GridPane.margin>
+                        <Insets top="3.0" />
+                    </GridPane.margin>
+                </TableView>
+                <TextField fx:id="tfTotal" alignment="CENTER_RIGHT" editable="false" promptText="Total" text="0" GridPane.columnIndex="1" GridPane.rowIndex="5" />
+                <Label alignment="CENTER_RIGHT" prefHeight="18.0" prefWidth="82.0" text="Desconto (%):" GridPane.rowIndex="4">
+                    <GridPane.margin>
+                        <Insets right="5.0" />
+                    </GridPane.margin>
+                </Label>
+                <TextField fx:id="tfDesconto" alignment="CENTER_RIGHT" editable="false" promptText="0,0" text="0,0" GridPane.columnIndex="1" GridPane.rowIndex="4" />
+                <Label alignment="CENTER_RIGHT" prefHeight="18.0" prefWidth="82.0" text="Status:" GridPane.rowIndex="6">
+                    <GridPane.margin>
+                        <Insets right="5.0" />
+                    </GridPane.margin>
+                </Label>
+                <Label alignment="CENTER_RIGHT" contentDisplay="RIGHT" prefHeight="18.0" prefWidth="75.0" text="Veículo:" textAlignment="RIGHT" GridPane.rowIndex="1" />
+            <Label fx:id="lbCliente" prefHeight="38.0" prefWidth="442.0" GridPane.columnIndex="1" />
+            <Label fx:id="lbVeiculo" prefHeight="38.0" prefWidth="442.0" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+            <Label fx:id="lbAgenda" prefHeight="38.0" prefWidth="442.0" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+            <Label fx:id="lbStatus" prefHeight="38.0" prefWidth="442.0" GridPane.columnIndex="1" GridPane.rowIndex="6" />
+            </children>
+        </GridPane>
+    </children>
+</AnchorPane>
