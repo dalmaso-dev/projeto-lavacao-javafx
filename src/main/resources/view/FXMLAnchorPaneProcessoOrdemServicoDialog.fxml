@@ -98,7 +98,7 @@
                   <Insets right="5.0" />
                </GridPane.margin>
             </Label>
-            <TextField fx:id="tfDesconto" alignment="CENTER_RIGHT" onAction="#onActionTextFieldDesconto" promptText="0,0" text="0,0" GridPane.columnIndex="1" GridPane.rowIndex="6" />
+            <TextField fx:id="tfDesconto" alignment="CENTER_RIGHT" editable="false" onAction="#onActionTextFieldDesconto" promptText="0,0" text="0,0" GridPane.columnIndex="1" GridPane.rowIndex="6" />
             <Label alignment="CENTER_RIGHT" prefHeight="18.0" prefWidth="82.0" text="Status:" GridPane.rowIndex="8">
                <GridPane.margin>
                   <Insets right="5.0" />
@@ -118,7 +118,7 @@
             </TextArea>
          </children>
       </GridPane>
-      <Group layoutX="260.0" layoutY="487.0" AnchorPane.bottomAnchor="14.0" AnchorPane.rightAnchor="259.0">
+      <Group layoutX="297.0" layoutY="486.0" AnchorPane.bottomAnchor="14.0" AnchorPane.rightAnchor="222.0">
          <children>
             <Button fx:id="buttonConfirmar" mnemonicParsing="false" onAction="#handleButtonConfirmar" text="Confirmar" />
             <Button fx:id="buttonCancelar" layoutX="75.0" mnemonicParsing="false" onAction="#handleButtonCancelar" prefHeight="25.0" prefWidth="69.0" text="Cancelar" />

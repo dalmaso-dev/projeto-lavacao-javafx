@@ -2,6 +2,7 @@ package br.edu.ifsc.fln.model.dao;
 
 import br.edu.ifsc.fln.model.domain.*;
 import br.edu.ifsc.fln.model.exceptions.DAOException;
+import br.edu.ifsc.fln.model.exceptions.ExceptionLavacao;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -96,7 +97,7 @@ public class OrdemServicoDAO {
             inserirItemOS(ordemServico);
 
             //inserindo os pontos para cliente
-            if (ordemServico.getStatus().name().equals("FECHADA")) {
+            if (ordemServico.getStatus().name().equals("FECHADA") && ordemServico.getDesconto() == 0) {
                 // atribuindo e calculando a quantidade de pontos do cliente
                 int pontos = ordemServico.getListaItemOS().size() * Servico.getPontos();
                 ordemServico.getVeiculo().getProprietario().getPontuacao().adicionar(pontos);
@@ -104,6 +105,20 @@ public class OrdemServicoDAO {
                 String sl3 = "UPDATE pontuacao SET quantidade=? WHERE id_cliente=?";
 
                 stmt = connection.prepareStatement(sl3);
+                stmt.setInt(1, ordemServico.getVeiculo().getProprietario().getPontuacao().saldo());
+                stmt.setInt(2, ordemServico.getVeiculo().getProprietario().getId());
+                stmt.execute();
+            } else if ((ordemServico.getStatus().name().equals("FECHADA") && ordemServico.getDesconto() > 0)) {
+
+                String sql = "UPDATE pontuacao SET quantidade=? WHERE id_cliente=?";
+                stmt = connection.prepareStatement(sql);
+
+                try {
+                    ordemServico.getVeiculo().getProprietario().getPontuacao().subtrair(200);
+                } catch (ExceptionLavacao e) {
+                    Logger.getLogger(OrdemServicoDAO.class.getName()).log(Level.SEVERE, null, e);
+                }
+
                 stmt.setInt(1, ordemServico.getVeiculo().getProprietario().getPontuacao().saldo());
                 stmt.setInt(2, ordemServico.getVeiculo().getProprietario().getId());
                 stmt.execute();

@@ -101,7 +101,7 @@ public class Veiculo implements IDados{
 
     @Override
     public String toString() {
-        return "domain.Veiculo{" +
+        return "Veiculo{" +
                 "placa='" + placa + '\'' +
                 ", observacoes='" + observacoes + '\'' +
                 ", modelo=" + modelo +

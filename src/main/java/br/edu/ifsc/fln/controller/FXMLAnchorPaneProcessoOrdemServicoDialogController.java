@@ -27,6 +27,7 @@ import java.net.URL;
 import java.sql.Connection;
 import java.text.DecimalFormat;
 import java.text.ParseException;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.ResourceBundle;
@@ -64,6 +65,8 @@ public class FXMLAnchorPaneProcessoOrdemServicoDialogController implements Initi
     private Button buttonConfirmar;
     @FXML
     private Button buttonCancelar;
+    @FXML
+    private Button buttonAplicarDesconto;
     @FXML
     private ContextMenu contextMenuTableView;
     @FXML
@@ -361,6 +364,7 @@ public class FXMLAnchorPaneProcessoOrdemServicoDialogController implements Initi
 
     @FXML
     private void onActionComboBoxClientes() {
+        comboBoxVeiculos.setValue(null);
         Cliente cliente = comboBoxClientes.getValue();
         List<Veiculo> listaVeiculos = null;
         try {
@@ -377,6 +381,33 @@ public class FXMLAnchorPaneProcessoOrdemServicoDialogController implements Initi
     private void onActionComboBoxVeiculos() {
         carregarComboBoxServicos();
         comboBoxServicos.setDisable(false);
+        this.ordemServico.setDesconto(0);
+        tfDesconto.setText(String.format("%.2f", this.ordemServico.getDesconto()));
+        if (comboBoxVeiculos.getValue() != null) {
+            Cliente cliente = comboBoxVeiculos.getValue().getProprietario();
+
+            if (cliente.getPontuacao().saldo() >= 200) {
+
+                ButtonType btnSim = new ButtonType("Sim", ButtonBar.ButtonData.YES);
+                ButtonType btnNao = new ButtonType("Não", ButtonBar.ButtonData.NO);
+
+                Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+                alert.setTitle("Confirmação");
+                alert.setHeaderText("Aplicar Desconto");
+                alert.setContentText("O dono do veículo está elegível para desconto de 15% na OS,\nsabendo que a pontuação do cliente será reduzido 200 pontos,\ndeseja aplicá-lo?");
+
+                alert.getButtonTypes().setAll(btnSim, btnNao);
+
+                alert.showAndWait().ifPresent(resposta -> {
+                    if (resposta == btnSim) {
+                        this.ordemServico.setDesconto(15);
+                        tfDesconto.setText(String.format("%.2f", this.ordemServico.getDesconto()));
+                    } else {
+                        alert.close();
+                    }
+                });
+            }
+        }
     }
 
     @FXML
@@ -403,7 +434,6 @@ public class FXMLAnchorPaneProcessoOrdemServicoDialogController implements Initi
             alert.setContentText(errorMessage);
             alert.show();
         }
-
     }
 
 
@@ -415,12 +445,12 @@ public class FXMLAnchorPaneProcessoOrdemServicoDialogController implements Initi
             errorMessage += "Veículo inválido!\n";
         }
 
-        if (datePickerAgenda.getValue() == null) {
+        if ((datePickerAgenda.getValue() == null) || (datePickerAgenda.getValue().isBefore(LocalDate.now()))) {
             errorMessage += "Data inválida!\n";
         }
 
         if (observableListItensOS == null) {
-            errorMessage += "Itens de venda inválidos!\n";
+            errorMessage += "Nenhum item inserido!\n";
         }
 
         DecimalFormat df = new DecimalFormat("0.00");
