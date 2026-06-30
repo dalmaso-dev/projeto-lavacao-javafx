@@ -172,7 +172,6 @@ public class ModeloDAO {
         } catch (SQLException ex) {
             Logger.getLogger(ModeloDAO.class.getName()).log(Level.SEVERE, null, ex);
             throw new DAOException("Falha ao realizar pesquisa no banco de dados.", ex);
-
         }
         return modelo;
     }

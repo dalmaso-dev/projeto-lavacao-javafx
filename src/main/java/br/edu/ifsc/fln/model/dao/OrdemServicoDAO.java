@@ -390,7 +390,7 @@ public class OrdemServicoDAO {
         }
     }
 
-    public Map<Integer, ArrayList> listarQuantidadeOrdensServicosPorMes() {
+    public Map<Integer, ArrayList> listarQuantidadeOrdensServicosPorMes() throws DAOException {
         String sql = "select count(numero) as count, extract(year from agenda) as ano, "
                 + " extract(month from agenda) as mes from ordem_servico group by ano, "
                 + "mes order by ano, mes";
@@ -419,10 +419,8 @@ public class OrdemServicoDAO {
             return retorno;
         } catch (SQLException ex) {
             Logger.getLogger(OrdemServicoDAO.class.getName()).log(Level.SEVERE, null, ex);
-        } finally {
-
+            throw new DAOException("Falha ao realizar pesquisa no banco de dados.", ex);
         }
-        return retorno;
     }
 
     private Map<Integer, ArrayList> ordenar(Map<Integer, ArrayList> vendas) {

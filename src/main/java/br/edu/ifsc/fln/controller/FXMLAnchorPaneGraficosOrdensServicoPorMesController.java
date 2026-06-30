@@ -8,6 +8,8 @@ package br.edu.ifsc.fln.controller;
 import br.edu.ifsc.fln.model.dao.OrdemServicoDAO;
 import br.edu.ifsc.fln.model.database.Database;
 import br.edu.ifsc.fln.model.database.DatabaseFactory;
+import br.edu.ifsc.fln.model.exceptions.DAOException;
+import br.edu.ifsc.fln.utils.AlertDialog;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -58,7 +60,12 @@ public class FXMLAnchorPaneGraficosOrdensServicoPorMesController implements Init
         categoryAxis.setCategories(observableListMeses);
         ordemServicoDAO.setConnection(connection);
         //prepara os dados para o eixo vertical
-        Map<Integer, ArrayList> dados = ordemServicoDAO.listarQuantidadeOrdensServicosPorMes();
+        Map<Integer, ArrayList> dados = null;
+        try {
+            dados = ordemServicoDAO.listarQuantidadeOrdensServicosPorMes();
+        } catch (DAOException e) {
+            AlertDialog.exceptionMessage(e);
+        }
         for (Map.Entry<Integer, ArrayList> dadosItem: dados.entrySet()) {
             XYChart.Series<String, Integer> series = new XYChart.Series<>();
             series.setName(dadosItem.getKey().toString());
