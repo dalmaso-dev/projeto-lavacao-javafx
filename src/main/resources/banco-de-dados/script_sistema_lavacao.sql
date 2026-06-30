@@ -282,5 +282,6 @@ INSERT INTO item_os
     (numero_os, id_servico, observacoes, valor_servico)
 VALUES (1, 1, 'Veículo com muita poeira e insetos na parte frontal.', 40.00);
 
-insert into parametros_de_sistema(chave, pontos) values ('pontos', 0);
+insert into parametros_de_sistema(chave, pontos)
+values ('pontos', 0);
 
